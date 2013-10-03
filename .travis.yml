@@ -1,10 +1,12 @@
 language: python
 python:
-  - "2.6"
-  - "2.7"
-  - "3.3"
-  - "pypy"
-# command to install dependencies
-install: "pip install -r requirements.txt --use-mirrors"
-# command to run tests
+- '2.6'
+- '2.7'
+- '3.3'
+- pypy
+install: pip install -r requirements.txt --use-mirrors
 script: python setup.py test
+env:
+  matrix:
+  - secure: RckpfDNun4lOxArlu4iiXPBKiPt9r1FCmV451Or+Op8LNg+24cHLBlwXEPrtTmRd6Qc3OQNg36ZxkVKw9QLd+/GicTdZBNdga2DxIXjYEg2q0E1IX22nsVJBdwxaxCtJ6JBQj2n5NLCbLFSPCAPwizNjcdt0itSWJ1nE5tah8LY=
+  - secure: PS7y5ynZJOiHFxkI/9BbsKA9THm4B2LKinXaxn//DLKz1A7iGswEQzUztiHb5vtXqOjhe7a98LUgTvcVAbCYrCxtonwieO/7lbLj5FNLQmPO0oqAtN7mES589aRbzH1MglUNH29Ar2iFAU1U/Ur6RxTmmTHDO/iGX3qGqSDK3TM=
