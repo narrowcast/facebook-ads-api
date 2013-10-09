@@ -233,13 +233,44 @@ class AdsAPI(object):
         ]
         return self.make_batch_request(batch)
 
-    def get_adcampaign_detail(self, account_id, campaign_id):
+    def get_adcampaign_detail(self, account_id, campaign_id, date_preset):
         """Returns the detail of an ad campaign."""
-        fields = 'id, name, campaign_status, daily_budget, lifetime_budget, ' \
-                 'start_time, end_time'
+        campaign_fields = [
+            'name', 'campaign_status', 'daily_budget', 'lifetime_budget',
+            'start_time', 'end_time']
+        campaign_data_columns = [
+            'campaign_name', 'reach', 'frequency', 'clicks',
+            'actions', 'total_actions', 'ctr', 'spend']
+        adgroup_data_columns = [
+            'campaign_id', 'campaign_name', 'adgroup_id', 'adgroup_name',
+            'reach', 'frequency', 'clicks', 'ctr', 'actions', 'cpm', 'cpc',
+            'spend']
+        demographic_data_columns = [
+            'campaign_id', 'reach', 'frequency', 'clicks', 'actions', 'spend',
+            'age', 'gender']
+        placement_data_columns = [
+            'campaign_id', 'reach', 'frequency', 'clicks', 'actions', 'spend',
+            'placement']
+        campaign_filters = [{
+            'field': 'campaign_id', 'type': 'in', 'value': [campaign_id]}]
         batch = [
             self.get_adaccount(account_id, ['currency'], batch=True),
-            self.get_adcampaign(campaign_id, fields, batch=True),
-            #self.get_report_stats(account_id, batch=True),
+            self.get_adcampaign(campaign_id, campaign_fields, batch=True),
+            self.get_adreport_stats(
+                account_id, date_preset, 'all_days', campaign_data_columns,
+                actions_group_by=['action_type'], filters=campaign_filters,
+                batch=True),
+            self.get_adreport_stats(
+                account_id, date_preset, 1, campaign_data_columns,
+                filters=campaign_filters, batch=True),
+            self.get_adreport_stats(
+                account_id, date_preset, 'all_days', adgroup_data_columns,
+                filters=campaign_filters, batch=True),
+            self.get_adreport_stats(
+                account_id, date_preset, 'all_days', demographic_data_columns,
+                filters=campaign_filters, batch=True),
+            self.get_adreport_stats(
+                account_id, date_preset, 'all_days', placement_data_columns,
+                filters=campaign_filters, batch=True),
         ]
         return self.make_batch_request(batch)

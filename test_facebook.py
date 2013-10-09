@@ -134,14 +134,15 @@ class FacebookAdsAPITest(unittest.TestCase):
         self.assertNotIn('error', response)
 
     def test_get_adcampaign_list(self):
-        response = self.api.get_adcampaign_list(ACCOUNT_ID)
-        print response
-        self.assertNotIn('error', response)
+        responses = self.api.get_adcampaign_list(ACCOUNT_ID)
+        for response in responses:
+            self.assertNotIn('error', response)
 
     def test_get_adcampaign_detail(self):
-        response = self.api.get_adcampaign_detail(ACCOUNT_ID, CAMPAIGN_ID)
-        print response
-        self.assertNotIn('error', response)
+        responses = self.api.get_adcampaign_detail(
+            ACCOUNT_ID, CAMPAIGN_ID, 'last_28_days')
+        for response in responses:
+            self.assertNotIn('error', response)
 
 if __name__ == '__main__':
     unittest.main()
