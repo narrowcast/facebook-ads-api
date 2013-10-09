@@ -250,7 +250,7 @@ class AdsAPI(object):
             'cpc', 'cpm', 'ctr', 'cost_per_total_action', 'age', 'gender']
         placement_data_columns = [
             'campaign_id', 'reach', 'frequency', 'clicks', 'actions', 'spend',
-            'placement']
+            'cpc', 'cpm', 'ctr', 'cost_per_total_action', 'placement']
         campaign_filters = [{
             'field': 'campaign_id', 'type': 'in', 'value': [campaign_id]}]
         batch = [
