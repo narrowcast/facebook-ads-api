@@ -247,7 +247,7 @@ class AdsAPI(object):
             'spend']
         demographic_data_columns = [
             'campaign_id', 'reach', 'frequency', 'clicks', 'actions', 'spend',
-            'age', 'gender']
+            'cpc', 'cpm', 'ctr', 'age', 'gender']
         placement_data_columns = [
             'campaign_id', 'reach', 'frequency', 'clicks', 'actions', 'spend',
             'placement']
