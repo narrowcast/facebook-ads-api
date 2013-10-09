@@ -19,8 +19,8 @@ class TestCommand(Command):
 setup(
     name='facebook-ads-api',
     version='0.1.0',
-    author='Narrowcast, Inc.',
-    author_email='admin@vimote.com',
+    author='Chee-Hyung Yoon',
+    author_email='yoonchee@gmail.com',
     py_modules=['facebook', ],
     url='http://github.com/narrowcast/facebook-ads-api',
     license='LICENSE',

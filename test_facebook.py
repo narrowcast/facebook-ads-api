@@ -3,6 +3,13 @@ import unittest
 
 import facebook
 
+USER_ID = os.environ['USER_ID']
+ACCOUNT_ID = os.environ['ACCOUNT_ID']
+CAMPAIGN_ID = os.environ['CAMPAIGN_ID']
+GROUP_ID = os.environ['GROUP_ID']
+CREATIVE_ID = os.environ['CREATIVE_ID']
+OFFSITE_PIXEL_ID = os.environ['OFFSITE_PIXEL_ID']
+
 
 class FacebookAdsAPITest(unittest.TestCase):
     """Tests for Facebook Ads API client."""
@@ -24,7 +31,117 @@ class FacebookAdsAPITest(unittest.TestCase):
 
     def test_debug_token(self):
         response = self.api.debug_token(self.access_token)
+        self.assertNotIn('error', response)
         self.assertEqual(str(response['data']['app_id']), self.app_id)
+
+    def test_get_adusers(self):
+        response = self.api.get_adusers(ACCOUNT_ID)
+        self.assertNotIn('error', response)
+
+    def test_get_adaccount(self):
+        response = self.api.get_adaccount(ACCOUNT_ID, ['id'])
+        self.assertNotIn('error', response)
+
+    def test_get_adaccounts(self):
+        response = self.api.get_adaccounts(USER_ID, ['id'])
+        self.assertNotIn('error', response)
+
+    def test_get_adcampaign(self):
+        response = self.api.get_adcampaign(CAMPAIGN_ID, ['id'])
+        self.assertNotIn('error', response)
+
+    def test_get_adcampaigns(self):
+        response = self.api.get_adcampaigns(ACCOUNT_ID, ['id'])
+        self.assertNotIn('error', response)
+
+    def test_get_adgroup(self):
+        response = self.api.get_adgroup(GROUP_ID, ['id'])
+        self.assertNotIn('error', response)
+
+    def test_get_adgroups_by_adaccount(self):
+        response = self.api.get_adgroups_by_adaccount(ACCOUNT_ID)
+        self.assertNotIn('error', response)
+
+    def test_get_adgroups_by_adcampaign(self):
+        response = self.api.get_adgroups_by_adcampaign(CAMPAIGN_ID)
+        self.assertNotIn('error', response)
+
+    def test_get_adcreative(self):
+        response = self.api.get_adcreative(CREATIVE_ID, ['id'])
+        self.assertNotIn('error', response)
+
+    def test_get_adcreatives(self):
+        response = self.api.get_adcreatives(ACCOUNT_ID, ['id'])
+        self.assertNotIn('error', response)
+
+    def test_get_adimages(self):
+        response = self.api.get_adimages(ACCOUNT_ID)
+        self.assertNotIn('error', response)
+
+    def test_get_adimages_by_hashes(self):
+        response = self.api.get_adimages(ACCOUNT_ID, [
+            '1026f5ca40f31a8808732e2c59817c3d',
+            '0d65031128a5126fba23f4085f9b5256'])
+        self.assertNotIn('error', response)
+
+    def test_get_stats_by_adaccount(self):
+        response = self.api.get_stats_by_adaccount(ACCOUNT_ID)
+        self.assertNotIn('error', response)
+
+    def test_get_stats_by_adcampaign(self):
+        response = self.api.get_stats_by_adcampaign(ACCOUNT_ID)
+        self.assertNotIn('error', response)
+
+    def test_get_stats_by_adgroup(self):
+        response = self.api.get_stats_by_adgroup(ACCOUNT_ID)
+        self.assertNotIn('error', response)
+
+    def test_get_stats_by_adgroup_with_ids(self):
+        response = self.api.get_stats_by_adgroup(ACCOUNT_ID, [GROUP_ID])
+        self.assertNotIn('error', response)
+
+    def test_get_adreport_stats(self):
+        response = self.api.get_adreport_stats(
+            ACCOUNT_ID, 'last_28_days', 'all_days', ['account_id'])
+        self.assertNotIn('error', response)
+
+    def test_get_conversion_stats_by_adaccount(self):
+        response = self.api.get_conversion_stats_by_adaccount(ACCOUNT_ID)
+        self.assertNotIn('error', response)
+
+    def test_get_conversion_stats_by_adcampaign(self):
+        response = self.api.get_conversion_stats_by_adcampaign(ACCOUNT_ID)
+        self.assertNotIn('error', response)
+
+    def test_get_conversion_stats_by_adgroup(self):
+        response = self.api.get_conversion_stats_by_adgroup(ACCOUNT_ID)
+        self.assertNotIn('error', response)
+
+    def test_get_conversion_stats(self):
+        response = self.api.get_conversion_stats(GROUP_ID)
+        self.assertNotIn('error', response)
+
+    def test_get_offsite_pixel(self):
+        response = self.api.get_offsite_pixel(OFFSITE_PIXEL_ID)
+        self.assertNotIn('error', response)
+
+    def test_get_offsite_pixels(self):
+        response = self.api.get_offsite_pixels(ACCOUNT_ID)
+        self.assertNotIn('error', response)
+
+    def test_get_ratecard(self):
+        response = self.api.get_ratecard(ACCOUNT_ID)
+        self.assertNotIn('error', response)
+
+    def test_get_adcampaign_list(self):
+        response = self.api.get_adcampaign_list(ACCOUNT_ID)
+        print response
+        self.assertNotIn('error', response)
+
+    def test_get_adcampaign_detail(self):
+        response = self.api.get_adcampaign_detail(ACCOUNT_ID, CAMPAIGN_ID)
+        print response
+        self.assertNotIn('error', response)
 
 if __name__ == '__main__':
     unittest.main()
