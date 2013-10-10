@@ -129,6 +129,10 @@ class FacebookAdsAPITest(unittest.TestCase):
         response = self.api.get_offsite_pixels(ACCOUNT_ID)
         self.assertNotIn('error', response)
 
+    def test_get_keyword_stats(self):
+        response = self.api.get_keyword_stats(GROUP_ID)
+        self.assertNotIn('error', response)
+
     def test_get_ratecard(self):
         response = self.api.get_ratecard(ACCOUNT_ID)
         self.assertNotIn('error', response)

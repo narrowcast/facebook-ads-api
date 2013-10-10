@@ -213,8 +213,13 @@ class AdsAPI(object):
         return self.make_request(path, 'GET', batch=batch)
 
     def get_offsite_pixels(self, account_id, batch=False):
-        "Returns the list of offsite pixels for the given account."""
+        """Returns the list of offsite pixels for the given account."""
         path = 'act_%s/offsitepixels' % account_id
+        return self.make_request(path, 'GET', batch=batch)
+
+    def get_keyword_stats(self, adgroup_id, batch=False):
+        """Returns the keyword stats for the given ad group."""
+        path = '%s/keywordstats' % adgroup_id
         return self.make_request(path, 'GET', batch=batch)
 
     def get_ratecard(self, account_id, batch=False):
