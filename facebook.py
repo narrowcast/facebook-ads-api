@@ -28,7 +28,8 @@ class AdsAPI(object):
                 'relative_url': '%s?%s' % (path, urllib.urlencode(args))
             }
         logger.info('Making a %s request at %s with %s' % (method, path, args))
-        args['access_token'] = self.access_token
+        if 'access_token' not in args:
+            args['access_token'] = self.access_token
         try:
             if method == 'GET':
                 url = '%s/%s?%s' % (FACEBOOK_API, path, urllib.urlencode(args))
