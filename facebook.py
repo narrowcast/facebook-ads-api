@@ -280,3 +280,29 @@ class AdsAPI(object):
                 filters=campaign_filters, batch=True),
         ]
         return self.make_batch_request(batch)
+
+    def get_user_pages(self, user_id, batch=False):
+        """Returns the list of pages to which user has access with tokens."""
+        path = '%s/accounts' % user_id
+        return self.make_request(path, 'GET', batch=batch)
+
+    def get_page_access_token(self, page_id, batch=False):
+        """Returns the page access token for the given page."""
+        path = '%s' % page_id
+        args = {'fields': 'access_token'}
+        return self.make_request(path, 'GET', args, batch)
+
+    def create_link_page_post(self, page_id, message, link,
+                              picture, published, batch=False):
+        """Creates a link page post on the given page."""
+        # TODO: this method is calling the API twice; combine them into batch
+        page_access_token = self.get_page_access_token(page_id)
+        path = '%s/feed' % page_id
+        args = {
+            'message': message,
+            'link': link,
+            'picture': picture,
+            'published': published,
+            'access_token': page_access_token['access_token'],
+        }
+        return self.make_request(path, 'POST', args, batch)

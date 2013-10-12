@@ -9,6 +9,7 @@ CAMPAIGN_ID = os.environ['CAMPAIGN_ID']
 GROUP_ID = os.environ['GROUP_ID']
 CREATIVE_ID = os.environ['CREATIVE_ID']
 OFFSITE_PIXEL_ID = os.environ['OFFSITE_PIXEL_ID']
+PAGE_ID = os.environ['PAGE_ID']
 
 
 class FacebookAdsAPITest(unittest.TestCase):
@@ -147,6 +148,21 @@ class FacebookAdsAPITest(unittest.TestCase):
             ACCOUNT_ID, CAMPAIGN_ID, 'last_28_days')
         for response in responses:
             self.assertNotIn('error', response)
+
+    def test_get_user_pages(self):
+        response = self.api.get_user_pages(USER_ID)
+        self.assertNotIn('error', response)
+
+    def test_get_page_access_token(self):
+        response = self.api.get_page_access_token(PAGE_ID)
+        self.assertNotIn('error', response)
+
+    def test_create_link_page_post(self):
+        response = self.api.create_link_page_post(
+            PAGE_ID, 'Link page post creation test', 'http://test.com',
+            'https://www.google.com/images/srpr/logo11w.png', False,
+        )
+        self.assertNotIn('error', response)
 
 if __name__ == '__main__':
     unittest.main()
