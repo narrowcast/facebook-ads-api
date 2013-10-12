@@ -159,8 +159,8 @@ class FacebookAdsAPITest(unittest.TestCase):
 
     def test_create_link_page_post(self):
         response = self.api.create_link_page_post(
-            PAGE_ID, 'Link page post creation test', 'http://test.com',
-            'https://www.google.com/images/srpr/logo11w.png', False,
+            PAGE_ID, 'http://www.youtube.com/watch?v=JJXuBSx_1yE',
+            'Link page post creation test',
         )
         self.assertNotIn('error', response)
 

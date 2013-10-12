@@ -292,17 +292,20 @@ class AdsAPI(object):
         args = {'fields': 'access_token'}
         return self.make_request(path, 'GET', args, batch)
 
-    def create_link_page_post(self, page_id, message, link,
-                              picture, published, batch=False):
+    def create_link_page_post(self, page_id, link, message=None,
+                              picture=None, published=None, batch=False):
         """Creates a link page post on the given page."""
         # TODO: this method is calling the API twice; combine them into batch
         page_access_token = self.get_page_access_token(page_id)
         path = '%s/feed' % page_id
         args = {
-            'message': message,
             'link': link,
-            'picture': picture,
-            'published': published,
             'access_token': page_access_token['access_token'],
         }
+        if message is not None:
+            args['message'] = message
+        if picture is not None:
+            args['picture'] = picture
+        if published is not None:
+            args['published'] = published
         return self.make_request(path, 'POST', args, batch)
