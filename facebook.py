@@ -309,3 +309,12 @@ class AdsAPI(object):
         if published is not None:
             args['published'] = published
         return self.make_request(path, 'POST', args, batch)
+
+    def create_offsite_pixel(self, account_id, name, tag, batch=False):
+        """Creates an offsite pixel for the given account id."""
+        path = 'act_%s/offsitepixels' % account_id
+        args = {
+            'name': name,
+            'tag': tag,
+        }
+        return self.make_request(path, 'POST', args, batch)

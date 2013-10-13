@@ -164,5 +164,10 @@ class FacebookAdsAPITest(unittest.TestCase):
         )
         self.assertNotIn('error', response)
 
+    def test_create_offsite_pixel(self):
+        response = self.api.create_offsite_pixel(
+            ACCOUNT_ID, 'Test Pixel', 'CHECKOUT')
+        self.assertNotIn('error', response)
+
 if __name__ == '__main__':
     unittest.main()
