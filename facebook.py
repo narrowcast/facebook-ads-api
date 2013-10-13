@@ -313,8 +313,72 @@ class AdsAPI(object):
             args['published'] = published
         return self.make_request(path, 'POST', args, batch)
 
+    def create_adcampaign(self, account_id, name, campaign_status,
+                          daily_budget=None, lifetime_budget=None,
+                          start_time=None, end_time=None, batch=False):
+        """Creates an ad campaign for the given account."""
+        if daily_budget is None and lifetime_budget is None:
+            raise("Either a lifetime_budget or a daily_budget "
+                  "must be set when creating a campaign")
+        if lifetime_budget is not None and end_time is None:
+            raise("end_time is required when lifetime_budget is specified")
+        path = 'act_%s/adcampaigns' % account_id
+        args = {
+            'name': name,
+            'campaign_status': campaign_status,
+        }
+        if daily_budget:
+            args['daily_budget'] = daily_budget
+        if lifetime_budget:
+            args['lifetime_budget'] = lifetime_budget
+        if start_time:
+            args['start_time'] = start_time
+        if end_time:
+            args['end_time'] = end_time
+        return self.make_request(path, 'POST', args, batch)
+
+    def create_adcreative_type_27(self, account_id, object_id,
+                                  auto_update=None, story_id=None,
+                                  url_tags=None, name=None, batch=False):
+        """Creates an ad creative in the given ad account."""
+        path = 'act_%s/adcreatives' % account_id
+        args = {
+            'type': 27,
+            'object_id': object_id,
+        }
+        if auto_update:
+            args['auto_update'] = auto_update
+        if story_id:
+            args['story_id'] = story_id
+        if url_tags:
+            args['url_tags'] = url_tags
+        if name:
+            args['name'] = name
+        return self.make_request(path, 'POST', args, batch)
+
+    def create_adgroup(self, account_id, name, bid_type, bid_info, campaign_id,
+                       creative_id, targeting, conversion_specs=None,
+                       tracking_specs=None, view_tags=None, batch=False):
+        """Creates an adgroup in the given ad camapaign with the given spec."""
+        path = 'act_%s/adgroups' % account_id
+        args = {
+            'name': name,
+            'bid_type': bid_type,
+            'bid_info': bid_info,
+            'campaign_id': campaign_id,
+            'creative': {'creative_id': creative_id},
+            'targeting': targeting,
+        }
+        if conversion_specs:
+            args['conversion_specs'] = conversion_specs
+        if tracking_specs:
+            args['tracking_specs'] = tracking_specs
+        if view_tags:
+            args['view_tags'] = view_tags
+        return self.make_request(path, 'POST', args, batch)
+
     def create_offsite_pixel(self, account_id, name, tag, batch=False):
-        """Creates an offsite pixel for the given account id."""
+        """Creates an offsite pixel for the given account."""
         path = 'act_%s/offsitepixels' % account_id
         args = {
             'name': name,

@@ -10,6 +10,7 @@ GROUP_ID = os.environ['GROUP_ID']
 CREATIVE_ID = os.environ['CREATIVE_ID']
 OFFSITE_PIXEL_ID = os.environ['OFFSITE_PIXEL_ID']
 PAGE_ID = os.environ['PAGE_ID']
+STORY_ID = os.environ['STORY_ID']
 
 
 class FacebookAdsAPITest(unittest.TestCase):
@@ -161,6 +162,27 @@ class FacebookAdsAPITest(unittest.TestCase):
         response = self.api.create_link_page_post(
             PAGE_ID, 'http://www.youtube.com/watch?v=JJXuBSx_1yE',
             'Link page post creation test',
+        )
+        self.assertNotIn('error', response)
+
+    def test_create_adcampaign(self):
+        response = self.api.create_adcampaign(
+            ACCOUNT_ID, 'Test Campaign', 1, 100)
+        self.assertNotIn('error', response)
+
+    def test_create_adcreative_type_27(self):
+        response = self.api.create_adcreative_type_27(
+            ACCOUNT_ID, PAGE_ID, story_id=STORY_ID,
+            name='Test Type 27 Ad Creative')
+        self.assertNotIn('error', response)
+
+    def test_create_adgroup(self):
+        targeting = {'countries': ['KR']}
+        conversion_specs = [{"action.type": ["offsite_conversion"],
+                             "offsite_pixel": [OFFSITE_PIXEL_ID]}]
+        response = self.api.create_adgroup(
+            ACCOUNT_ID, 'Test Ad Group', 'ABSOLUTE_OCPM', {'ACTIONS': 1000},
+            CAMPAIGN_ID, CREATIVE_ID, targeting, conversion_specs
         )
         self.assertNotIn('error', response)
 
