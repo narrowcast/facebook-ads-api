@@ -281,10 +281,13 @@ class AdsAPI(object):
         ]
         return self.make_batch_request(batch)
 
-    def get_user_pages(self, user_id, batch=False):
+    def get_user_pages(self, user_id, fields=None, batch=False):
         """Returns the list of pages to which user has access with tokens."""
         path = '%s/accounts' % user_id
-        return self.make_request(path, 'GET', batch=batch)
+        args = {}
+        if fields:
+            args['fields'] = json.dumps(fields)
+        return self.make_request(path, 'GET', args, batch=batch)
 
     def get_page_access_token(self, page_id, batch=False):
         """Returns the page access token for the given page."""
