@@ -366,15 +366,15 @@ class AdsAPI(object):
             'bid_type': bid_type,
             'bid_info': bid_info,
             'campaign_id': campaign_id,
-            'creative': {'creative_id': creative_id},
+            'creative': json.dumps({'creative_id': creative_id}),
             'targeting': targeting,
         }
         if conversion_specs:
-            args['conversion_specs'] = conversion_specs
+            args['conversion_specs'] = json.dumps(conversion_specs)
         if tracking_specs:
-            args['tracking_specs'] = tracking_specs
+            args['tracking_specs'] = json.dumps(tracking_specs)
         if view_tags:
-            args['view_tags'] = view_tags
+            args['view_tags'] = json.dumps(view_tags)
         return self.make_request(path, 'POST', args, batch)
 
     def create_offsite_pixel(self, account_id, name, tag, batch=False):
