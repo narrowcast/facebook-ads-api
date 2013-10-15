@@ -314,6 +314,10 @@ class AdsAPI(object):
             args['published'] = published
         if name is not None:
             args['name'] = name
+        if caption is not None:
+            args['caption'] = caption
+        if description is not None:
+            args['description'] = description
         return self.make_request(path, 'POST', args, batch)
 
     def create_adcampaign(self, account_id, name, campaign_status,
