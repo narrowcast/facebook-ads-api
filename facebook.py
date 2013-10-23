@@ -88,7 +88,7 @@ class AdsAPI(object):
         """Returns the list of Facebook ad accounts."""
         path = '%s/adaccounts' % user_id
         args = {'fields': fields}
-        return self.make_request(path,  'GET', args, batch)
+        return self.make_request(path, 'GET', args, batch)
 
     def get_adcampaign(self, campaign_id, fields, batch=False):
         """Returns the fields for the given ad campaign."""
@@ -287,6 +287,19 @@ class AdsAPI(object):
         args = {}
         if fields:
             args['fields'] = json.dumps(fields)
+        return self.make_request(path, 'GET', args, batch=batch)
+
+    def get_autocomplete_data(self, q, type, want_localized_name=False,
+                              list=None, limit=None, batch=False):
+        """Returns the autocomplete data for the given query and type."""
+        path = '%s/search' % q
+        args = {'type': type}
+        if want_localized_name:
+            args['want_localized_name'] = want_localized_name
+        if list:
+            args['list'] = list
+        if limit:
+            args['limit'] = limit
         return self.make_request(path, 'GET', args, batch=batch)
 
     def get_page_access_token(self, page_id, batch=False):

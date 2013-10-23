@@ -158,6 +158,10 @@ class FacebookAdsAPITest(unittest.TestCase):
         response = self.api.get_page_access_token(PAGE_ID)
         self.assertNotIn('error', response)
 
+    def test_get_autocomplete_data(self):
+        response = self.api.get_autocomplete_data("", 'adcountry', limit=1000)
+        self.assertNotIn('error', response)
+
     def test_create_link_page_post(self):
         response = self.api.create_link_page_post(
             PAGE_ID, 'http://www.youtube.com/watch?v=JJXuBSx_1yE',
