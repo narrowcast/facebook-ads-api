@@ -134,7 +134,7 @@ class AdsAPI(object):
         """Returns the ad images for the given ad account."""
         path = 'act_%s/adimages' % account_id
         args = {}
-        if hashes:
+        if hashes is not None:
             args = {'hashes': hashes}
         return self.make_request(path, 'GET', args, batch)
 
@@ -148,7 +148,7 @@ class AdsAPI(object):
         """Returns the stats for a Facebook campaign by adcampaign."""
         path = 'act_%s/adcampaignstats' % account_id
         args = {}
-        if campaign_ids:
+        if campaign_ids is not None:
             args['campaign_ids'] = json.dumps(campaign_ids)
         return self.make_request(path, 'GET', args, batch)
 
@@ -156,7 +156,7 @@ class AdsAPI(object):
         """Returns the stats for a Facebook campaign by adgroup."""
         path = 'act_%s/adgroupstats' % account_id
         args = {}
-        if adgroup_ids:
+        if adgroup_ids is not None:
             args['adgroup_ids'] = json.dumps(adgroup_ids)
         return self.make_request(path, 'GET', args, batch)
 
@@ -170,9 +170,9 @@ class AdsAPI(object):
             'time_increment': time_increment,
             'data_columns': json.dumps(data_columns),
         }
-        if filters:
+        if filters is not None:
             args['filters'] = json.dumps(filters)
-        if actions_group_by:
+        if actions_group_by is not None:
             args['actions_group_by'] = actions_group_by
         return self.make_request(path, 'GET', args, batch)
 
@@ -186,9 +186,9 @@ class AdsAPI(object):
         """Returns the conversions stats for all ad campaigns."""
         path = 'act_%s/adcampaignconversions' % account_id
         args = {}
-        if campaign_ids:
+        if campaign_ids is not None:
             args['campaign_ids'] = json.dumps(campaign_ids)
-        if include_deleted:
+        if include_deleted is not None:
             args['include_deleted'] = include_deleted
         return self.make_request(path, 'GET', args, batch)
 
@@ -197,9 +197,9 @@ class AdsAPI(object):
         """Returns the conversions stats for all ad groups."""
         path = 'act_%s/adgroupconversions' % account_id
         args = {}
-        if adgroup_ids:
+        if adgroup_ids is not None:
             args['adgroup_ids'] = json.dumps(adgroup_ids)
-        if include_deleted:
+        if include_deleted is not None:
             args['include_deleted'] = include_deleted
         return self.make_request(path, 'GET', args, batch)
 
@@ -224,9 +224,24 @@ class AdsAPI(object):
         return self.make_request(path, 'GET', batch=batch)
 
     def get_ratecard(self, account_id, batch=False):
-        "Returns the rate card for Homepage Ads."""
+        """Returns the rate card for Homepage Ads."""
         path = 'act_%s/ratecard' % account_id
         return self.make_request(path, 'GET', batch=batch)
+
+    def get_reach_estimate(self, account_id, currency, targeting_spec,
+                           creative_action_spec=None,
+                           bid_for=None, batch=False):
+        """Returns the reach estimate for the given currency and targeting."""
+        path = 'act_%s/reachestimate' % account_id
+        args = {
+            'currency': currency,
+            'targeting_spec': targeting_spec,
+        }
+        if creative_action_spec is not None:
+            args['creative_action_spec'] = creative_action_spec
+        if bid_for is not None:
+            args['bid_for'] = bid_for
+        return self.make_request(path, 'GET', args, batch=batch)
 
     def get_adcampaign_list(self, account_id):
         """Returns the list of ad campaigns and related data."""

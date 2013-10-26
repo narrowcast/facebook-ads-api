@@ -139,6 +139,12 @@ class FacebookAdsAPITest(unittest.TestCase):
         response = self.api.get_ratecard(ACCOUNT_ID)
         self.assertNotIn('error', response)
 
+    def test_get_reach_estimate(self):
+        targeting_spec = {'countries': ['KR']}
+        response = self.api.get_reach_estimate(
+            ACCOUNT_ID, 'KRW', targeting_spec)
+        self.assertNotIn('error', response)
+
     def test_get_adcampaign_list(self):
         responses = self.api.get_adcampaign_list(ACCOUNT_ID)
         for response in responses:
