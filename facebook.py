@@ -22,6 +22,14 @@ class AdsAPIError(Exception):
         self.type = data['error']['type']
 
 
+class AdsAPIBatchError(Exception):
+    def __init__(self, error):
+        data = json.load(error)
+        self.errors = []
+        for row in data:
+            self.errors.append(row['error'])
+
+
 class AdsAPI(object):
     """A client for the Facebook Ads API."""
     def __init__(self, access_token, app_id, app_secret):
@@ -70,8 +78,7 @@ class AdsAPI(object):
                 data[idx] = json.loads(val['body'])
             return data
         except urllib2.HTTPError as e:
-            print 'HTTPError: %s' % e.code
-            return json.load(e)
+            raise AdsAPIBatchError(e)
         except urllib2.URLError as e:
             print 'URLError: %s' % e.reason
 
