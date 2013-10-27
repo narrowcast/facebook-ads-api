@@ -36,6 +36,12 @@ class FacebookAdsAPITest(unittest.TestCase):
         self.assertNotIn('error', response)
         self.assertEqual(str(response['data']['app_id']), self.app_id)
 
+    def test_error_handling(self):
+        try:
+            response = self.api.debug_token('')
+        except facebook.AdsAPIError as e:
+            pass
+
     def test_get_adusers(self):
         response = self.api.get_adusers(ACCOUNT_ID)
         self.assertNotIn('error', response)

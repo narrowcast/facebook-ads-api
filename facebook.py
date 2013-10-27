@@ -10,6 +10,18 @@ FACEBOOK_API = 'https://graph.facebook.com'
 logger = logging.getLogger(__name__)
 
 
+class AdsAPIError(Exception):
+    """
+    Errors as defined in the Facebook documentation
+    https://developers.facebook.com/docs/reference/ads-api/error-reference/
+    """
+    def __init__(self, error):
+        data = json.load(error)
+        self.message = data['error']['message']
+        self.code = data['error']['code']
+        self.type = data['error']['type']
+
+
 class AdsAPI(object):
     """A client for the Facebook Ads API."""
     def __init__(self, access_token, app_id, app_secret):
@@ -41,8 +53,7 @@ class AdsAPI(object):
                 raise
             return json.load(f)
         except urllib2.HTTPError as e:
-            print 'HTTPError: %s' % e.code
-            return json.load(e)
+            raise AdsAPIError(e)
         except urllib2.URLError as e:
             print 'URLError: %s' % e.reason
 
