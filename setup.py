@@ -1,4 +1,4 @@
-:import subprocess
+import subprocess
 import sys
 from distutils.core import setup, Command
 
