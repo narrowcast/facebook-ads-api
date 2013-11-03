@@ -105,7 +105,7 @@ class AdsAPI(object):
                 f = urllib2.urlopen(url)
             elif method == 'POST':
                 url = '%s/%s' % (FACEBOOK_API, path)
-                if files is not None:
+                if files:
                     encoder = MultipartFormdataEncoder()
                     content_type, body = encoder.encode(args, files)
                     req = urllib2.Request(url, data=body)
