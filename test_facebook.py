@@ -181,6 +181,15 @@ class FacebookAdsAPITest(unittest.TestCase):
         )
         self.assertNotIn('error', response)
 
+    def test_create_link_page_post_with_custom_image(self):
+        try:
+            response = self.api.create_link_page_post(
+                PAGE_ID, 'http://www.virect.com/', thumbnail='kodim23.png'
+            )
+            self.assertNotIn('error', response)
+        except facebook.AdsAPIError as e:
+            print e.message
+
     def test_create_adcampaign(self):
         response = self.api.create_adcampaign(
             ACCOUNT_ID, 'Test Campaign', 1, 100)

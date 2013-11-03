@@ -1,13 +1,71 @@
+import base64
+import codecs
 import hashlib
 import hmac
+import io
 import json
 import logging
+import mimetypes
+import sys
 import urllib
 import urllib2
+import uuid
 
 FACEBOOK_API = 'https://graph.facebook.com'
 
 logger = logging.getLogger(__name__)
+
+
+class MultipartFormdataEncoder(object):
+    def __init__(self):
+        self.boundary = uuid.uuid4().hex
+        self.content_type = 'multipart/form-data; boundary={}'.format(
+            self.boundary)
+
+    @classmethod
+    def u(cls, s):
+        if sys.hexversion < 0x03000000 and isinstance(s, str):
+            s = s.decode('utf-8')
+        if sys.hexversion >= 0x03000000 and isinstance(s, bytes):
+            s = s.decode('utf-8')
+        return s
+
+    def iter(self, fields, files):
+        """
+        fields is a sequence of (name, value) elements for regular form fields.
+        files is a sequence of (name, filename, file-type) elements for data
+        to be uploaded as files.
+        Yield body's chunk as bytes
+        """
+        encoder = codecs.getencoder('utf-8')
+        for key, value in fields.iteritems():
+            key = self.u(key)
+            yield encoder('--{}\r\n'.format(self.boundary))
+            yield encoder(self.u(
+                'Content-Disposition: form-data; name="{}"\r\n').format(key))
+            yield encoder('\r\n')
+            if isinstance(value, int) or isinstance(value, float):
+                value = str(value)
+            yield encoder(self.u(value))
+            yield encoder('\r\n')
+        for key, filename in files.iteritems():
+            key = self.u(key)
+            filename = self.u(filename)
+            yield encoder('--{}\r\n'.format(self.boundary))
+            yield encoder(self.u('Content-Disposition: form-data; name="{}"; filename="{}"\r\n').format(key, filename))
+            yield encoder('Content-Type: {}\r\n'.format(mimetypes.guess_type(filename)[0] or 'application/octet-stream'))
+            yield encoder('\r\n')
+            with open(filename, 'rb') as fd:
+                buff = fd.read()
+                yield (buff, len(buff))
+            yield encoder('\r\n')
+        yield encoder('--{}--\r\b'.format(self.boundary))
+
+    def encode(self, fields, files):
+        body = io.BytesIO()
+        for chunk, chunk_len in self.iter(fields, files):
+            body.write(chunk)
+        return self.content_type, body.getvalue()
 
 
 class AdsAPIError(Exception):
@@ -22,14 +80,6 @@ class AdsAPIError(Exception):
         self.type = data['error']['type']
 
 
-class AdsAPIBatchError(Exception):
-    def __init__(self, error):
-        data = json.load(error)
-        self.errors = []
-        for row in data:
-            self.errors.append(row['error'])
-
-
 class AdsAPI(object):
     """A client for the Facebook Ads API."""
     def __init__(self, access_token, app_id, app_secret):
@@ -39,7 +89,7 @@ class AdsAPI(object):
         h = hmac.new(access_token, app_secret, hashlib.sha256)
         self.appsecret_proof = h.hexdigest()
 
-    def make_request(self, path, method, args={}, batch=False):
+    def make_request(self, path, method, args={}, files={}, batch=False):
         """Makes a request against the Facebook Ads API endpoint."""
         if batch:
             # Then just return a dict for the batch request
@@ -56,7 +106,14 @@ class AdsAPI(object):
                 f = urllib2.urlopen(url)
             elif method == 'POST':
                 url = '%s/%s' % (FACEBOOK_API, path)
-                f = urllib2.urlopen(url, urllib.urlencode(args))
+                if files is not None:
+                    encoder = MultipartFormdataEncoder()
+                    content_type, body = encoder.encode(args, files)
+                    req = urllib2.Request(url, data=body)
+                    req.add_header('Content-Type', content_type)
+                    f = urllib2.urlopen(req)
+                else:
+                    f = urllib2.urlopen(url, urllib.urlencode(args))
             else:
                 raise
             return json.load(f)
@@ -78,7 +135,8 @@ class AdsAPI(object):
                 data[idx] = json.loads(val['body'])
             return data
         except urllib2.HTTPError as e:
-            raise AdsAPIBatchError(e)
+            print 'HTTPError: %s' % e.code
+            return json.load(e)
         except urllib2.URLError as e:
             print 'URLError: %s' % e.reason
 
@@ -100,31 +158,31 @@ class AdsAPI(object):
         """Returns the fields of the given ad account."""
         path = 'act_%s' % account_id
         args = {'fields': fields}
-        return self.make_request(path, 'GET', args, batch)
+        return self.make_request(path, 'GET', args, batch=batch)
 
     def get_adaccounts(self, user_id, fields, batch=False):
         """Returns the list of Facebook ad accounts."""
         path = '%s/adaccounts' % user_id
         args = {'fields': fields}
-        return self.make_request(path, 'GET', args, batch)
+        return self.make_request(path, 'GET', args, batch=batch)
 
     def get_adcampaign(self, campaign_id, fields, batch=False):
         """Returns the fields for the given ad campaign."""
         path = '%s' % campaign_id
         args = {'fields': fields}
-        return self.make_request(path, 'GET', args, batch)
+        return self.make_request(path, 'GET', args, batch=batch)
 
     def get_adcampaigns(self, account_id, fields, batch=False):
         """Returns the fields of all ad campaigns from the given ad account."""
         path = 'act_%s/adcampaigns' % account_id
         args = {'fields': fields}
-        return self.make_request(path, 'GET', args, batch)
+        return self.make_request(path, 'GET', args, batch=batch)
 
     def get_adgroup(self, adgroup_id, fields, batch=False):
         """Returns the fields for the given ad group."""
         path = '%s' % adgroup_id
         args = {'fields': fields}
-        return self.make_request(path, 'GET', args, batch)
+        return self.make_request(path, 'GET', args, batch=batch)
 
     def get_adgroups_by_adaccount(self, account_id, batch=False):
         """Returns the fields of all ad groups from the given ad account."""
@@ -140,13 +198,13 @@ class AdsAPI(object):
         """Returns the fields for the given ad creative."""
         path = '%s' % creative_id
         args = {'fields': fields}
-        return self.make_request(path, 'GET', args, batch)
+        return self.make_request(path, 'GET', args, batch=batch)
 
     def get_adcreatives(self, account_id, fields, batch=False):
         """Returns the fields for the given ad creative."""
         path = 'act_%s/adcreatives' % account_id
         args = {'fields': fields}
-        return self.make_request(path,  'GET', args, batch)
+        return self.make_request(path, 'GET', args, batch=batch)
 
     def get_adimages(self, account_id, hashes=None, batch=False):
         """Returns the ad images for the given ad account."""
@@ -154,7 +212,7 @@ class AdsAPI(object):
         args = {}
         if hashes is not None:
             args = {'hashes': hashes}
-        return self.make_request(path, 'GET', args, batch)
+        return self.make_request(path, 'GET', args, batch=batch)
 
     def get_stats_by_adaccount(self, account_id, batch=False):
         """Returns the stats for a Facebook campaign."""
@@ -168,7 +226,7 @@ class AdsAPI(object):
         args = {}
         if campaign_ids is not None:
             args['campaign_ids'] = json.dumps(campaign_ids)
-        return self.make_request(path, 'GET', args, batch)
+        return self.make_request(path, 'GET', args, batch=batch)
 
     def get_stats_by_adgroup(self, account_id, adgroup_ids=None, batch=False):
         """Returns the stats for a Facebook campaign by adgroup."""
@@ -176,7 +234,7 @@ class AdsAPI(object):
         args = {}
         if adgroup_ids is not None:
             args['adgroup_ids'] = json.dumps(adgroup_ids)
-        return self.make_request(path, 'GET', args, batch)
+        return self.make_request(path, 'GET', args, batch=batch)
 
     def get_adreport_stats(self, account_id, date_preset, time_increment,
                            data_columns, filters=None, actions_group_by=None,
@@ -192,7 +250,7 @@ class AdsAPI(object):
             args['filters'] = json.dumps(filters)
         if actions_group_by is not None:
             args['actions_group_by'] = actions_group_by
-        return self.make_request(path, 'GET', args, batch)
+        return self.make_request(path, 'GET', args, batch=batch)
 
     def get_conversion_stats_by_adaccount(self, account_id, batch=False):
         """Returns the aggregated conversion stats for the given ad account."""
@@ -208,7 +266,7 @@ class AdsAPI(object):
             args['campaign_ids'] = json.dumps(campaign_ids)
         if include_deleted is not None:
             args['include_deleted'] = include_deleted
-        return self.make_request(path, 'GET', args, batch)
+        return self.make_request(path, 'GET', args, batch=batch)
 
     def get_conversion_stats_by_adgroup(self, account_id, adgroup_ids=None,
                                         include_deleted=False, batch=False):
@@ -219,7 +277,7 @@ class AdsAPI(object):
             args['adgroup_ids'] = json.dumps(adgroup_ids)
         if include_deleted is not None:
             args['include_deleted'] = include_deleted
-        return self.make_request(path, 'GET', args, batch)
+        return self.make_request(path, 'GET', args, batch=batch)
 
     def get_conversion_stats(self, adgroup_id, batch=False):
         """Returns the conversion stats for a single ad group."""
@@ -339,11 +397,11 @@ class AdsAPI(object):
         """Returns the page access token for the given page."""
         path = '%s' % page_id
         args = {'fields': 'access_token'}
-        return self.make_request(path, 'GET', args, batch)
+        return self.make_request(path, 'GET', args, batch=batch)
 
     def create_link_page_post(self, page_id, link, message=None, picture=None,
-                              name=None, caption=None, description=None,
-                              published=None, batch=False):
+                              thumbnail=None, name=None, caption=None,
+                              description=None, published=None, batch=False):
         """Creates a link page post on the given page."""
         # TODO: this method is calling the API twice; combine them into batch
         page_access_token = self.get_page_access_token(page_id)
@@ -352,10 +410,13 @@ class AdsAPI(object):
             'link': link,
             'access_token': page_access_token['access_token'],
         }
+        files = {}
         if message is not None:
             args['message'] = message
         if picture is not None:
             args['picture'] = picture
+        if thumbnail is not None:
+            files['thumbnail'] = thumbnail
         if published is not None:
             args['published'] = published
         if name is not None:
@@ -364,7 +425,7 @@ class AdsAPI(object):
             args['caption'] = caption
         if description is not None:
             args['description'] = description
-        return self.make_request(path, 'POST', args, batch)
+        return self.make_request(path, 'POST', args, files, batch=batch)
 
     def create_adcampaign(self, account_id, name, campaign_status,
                           daily_budget=None, lifetime_budget=None,
@@ -388,7 +449,7 @@ class AdsAPI(object):
             args['start_time'] = start_time
         if end_time:
             args['end_time'] = end_time
-        return self.make_request(path, 'POST', args, batch)
+        return self.make_request(path, 'POST', args, batch=batch)
 
     def create_adcreative_type_27(self, account_id, object_id,
                                   auto_update=None, story_id=None,
@@ -407,7 +468,7 @@ class AdsAPI(object):
             args['url_tags'] = url_tags
         if name:
             args['name'] = name
-        return self.make_request(path, 'POST', args, batch)
+        return self.make_request(path, 'POST', args, batch=batch)
 
     def create_adgroup(self, account_id, name, bid_type, bid_info, campaign_id,
                        creative_id, targeting, conversion_specs=None,
@@ -428,7 +489,7 @@ class AdsAPI(object):
             args['tracking_specs'] = json.dumps(tracking_specs)
         if view_tags:
             args['view_tags'] = json.dumps(view_tags)
-        return self.make_request(path, 'POST', args, batch)
+        return self.make_request(path, 'POST', args, batch=batch)
 
     def create_offsite_pixel(self, account_id, name, tag, batch=False):
         """Creates an offsite pixel for the given account."""
@@ -437,4 +498,4 @@ class AdsAPI(object):
             'name': name,
             'tag': tag,
         }
-        return self.make_request(path, 'POST', args, batch)
+        return self.make_request(path, 'POST', args, batch=batch)
