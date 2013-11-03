@@ -33,7 +33,7 @@ class MultipartFormdataEncoder(object):
     def iter(self, fields, files):
         """
         fields is a sequence of (name, value) elements for regular form fields.
-        files is a sequence of (name, filename, file-type) elements for data
+        files is a sequence of (name, file-like) elements for data
         to be uploaded as files.
         Yield body's chunk as bytes
         """
@@ -48,16 +48,15 @@ class MultipartFormdataEncoder(object):
                 value = str(value)
             yield encoder(self.u(value))
             yield encoder('\r\n')
-        for key, filename in files.iteritems():
+        for key, value in files.iteritems():
             key = self.u(key)
-            filename = self.u(filename)
+            filename = self.u(value.name)
             yield encoder('--{}\r\n'.format(self.boundary))
             yield encoder(self.u('Content-Disposition: form-data; name="{}"; filename="{}"\r\n').format(key, filename))
             yield encoder('Content-Type: {}\r\n'.format(mimetypes.guess_type(filename)[0] or 'application/octet-stream'))
             yield encoder('\r\n')
-            with open(filename, 'rb') as fd:
-                buff = fd.read()
-                yield (buff, len(buff))
+            buff = value.read()
+            yield (buff, len(buff))
             yield encoder('\r\n')
         yield encoder('--{}--\r\b'.format(self.boundary))
 

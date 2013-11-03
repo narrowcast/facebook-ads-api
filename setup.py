@@ -1,4 +1,4 @@
-import subprocess
+:import subprocess
 import sys
 from distutils.core import setup, Command
 
@@ -18,7 +18,7 @@ class TestCommand(Command):
 
 setup(
     name='facebook-ads-api',
-    version='0.1.19',
+    version='0.1.20',
     author='Chee-Hyung Yoon',
     author_email='yoonchee@gmail.com',
     py_modules=['facebook', ],
