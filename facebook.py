@@ -426,6 +426,25 @@ class AdsAPI(object):
             args['description'] = description
         return self.make_request(path, 'POST', args, files, batch=batch)
 
+    def create_video_page_post(self, page_id, source, title=None,
+                               description=None, published=True,
+                               scheduled_publish_time=None, batch=False):
+        # TODO: this method is calling the API twice; combine them into batch
+        page_access_token = self.get_page_access_token(page_id)
+        path = '%s/videos' % page_id
+        args = {
+            'published': published,
+            'access_token': page_access_token['access_token'],
+        }
+        if title is not None:
+            args['title'] = title
+        if description is not None:
+            args['description'] = description
+        if scheduled_publish_time is not None:
+            args['scheduled_publish_time'] = scheduled_publish_time
+        files = {'source': source}
+        return self.make_request(path, 'POST', args, files, batch=batch)
+
     def create_adcampaign(self, account_id, name, campaign_status,
                           daily_budget=None, lifetime_budget=None,
                           start_time=None, end_time=None, batch=False):

@@ -183,9 +183,18 @@ class FacebookAdsAPITest(unittest.TestCase):
 
     def test_create_link_page_post_with_custom_image(self):
         try:
+            thumbnail = open('kodim23.png', 'rb')
             response = self.api.create_link_page_post(
-                PAGE_ID, 'http://www.virect.com/', thumbnail='kodim23.png'
+                PAGE_ID, 'http://www.virect.com/', thumbnail=thumbnail
             )
+            self.assertNotIn('error', response)
+        except facebook.AdsAPIError as e:
+            print e.message
+
+    def test_create_video_page_post(self):
+        try:
+            source = open('afm.mp4', 'rb')
+            response = self.api.create_video_page_post(PAGE_ID, source=source)
             self.assertNotIn('error', response)
         except facebook.AdsAPIError as e:
             print e.message
