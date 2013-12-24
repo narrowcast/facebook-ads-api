@@ -13,4 +13,4 @@ Usage
 
     import facebook
 
-    api = facebook.AdsAPI(access_token)
+    api = facebook.AdsAPI(access_token,app_id,app_secret)
