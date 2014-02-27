@@ -130,8 +130,15 @@ class AdsAPI(object):
         try:
             f = urllib2.urlopen(FACEBOOK_API, urllib.urlencode(args))
             data = json.load(f)
+            print data
             for idx, val in enumerate(data):
-                data[idx] = json.loads(val['body'])
+                # Workaround code for facebook api server error
+                # Bug report: https://developers.facebook.com/x/bugs/241617149351663/
+                if val['code'] == 500:
+                    logger.error("Facebook api server error occured.")
+                    data[idx] = "{u'data': [], u'limit': 50, u'offset': 0}"
+                else:
+                    data[idx] = json.loads(val['body'])
             return data
         except urllib2.HTTPError as e:
             print 'HTTPError: %s' % e.code
