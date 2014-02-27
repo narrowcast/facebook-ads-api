@@ -135,9 +135,8 @@ class AdsAPI(object):
                 # Bug report: https://developers.facebook.com/x/bugs/241617149351663/
                 if val['code'] == 500:
                     logger.error("Facebook api server error occured.")
-                    data[idx] = "{u'data': [], u'limit': 50, u'offset': 0}"
-                else:
-                    data[idx] = json.loads(val['body'])
+                    val['body'] = "{u'data': [], u'limit': 50, u'offset': 0}"
+                data[idx] = json.loads(val['body'])
             return data
         except urllib2.HTTPError as e:
             print 'HTTPError: %s' % e.code
