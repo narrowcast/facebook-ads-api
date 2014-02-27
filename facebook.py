@@ -130,7 +130,6 @@ class AdsAPI(object):
         try:
             f = urllib2.urlopen(FACEBOOK_API, urllib.urlencode(args))
             data = json.load(f)
-            print data
             for idx, val in enumerate(data):
                 # Workaround code for facebook api server error
                 # Bug report: https://developers.facebook.com/x/bugs/241617149351663/
