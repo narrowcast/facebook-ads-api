@@ -134,6 +134,8 @@ class AdsAPI(object):
                 # Workaround code for facebook api server error
                 if val['code'] == 500:
                     logger.info("Facebook api server has some problem.")
+                    logger.info("(%s's of batch job) %s" % (idx, val))
+                    print ("(%s's of batch job) %s" % (idx, val))
                     val['body'] = '{"error": {"code": 1, "message": "An unknown error occurred", "type": "UnknownError"}}'
                 data[idx] = json.loads(val['body'])
             return data
