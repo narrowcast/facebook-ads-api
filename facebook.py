@@ -13,7 +13,7 @@ import uuid
 
 FACEBOOK_API = 'https://graph.facebook.com'
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('facebook')
 
 
 class MultipartFormdataEncoder(object):
