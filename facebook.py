@@ -116,8 +116,8 @@ class AdsAPI(object):
             else:
                 raise
             return json.load(f)
-        except urllib2.HTTPError as e:
-            raise AdsAPIError(e)
+        # except urllib2.HTTPError as e:
+        #     raise AdsAPIError(e)
         except urllib2.URLError as e:
             print 'URLError: %s' % e.reason
 
@@ -135,7 +135,6 @@ class AdsAPI(object):
                 if val['code'] == 500:
                     logger.info("Facebook api server has some problem.")
                     logger.info("(%s's of batch job) %s" % (idx, val))
-                    print ("(%s's of batch job) %s" % (idx, val))
                     val['body'] = '{"error": {"code": 1, "message": "An unknown error occurred", "type": "UnknownError"}}'
                 data[idx] = json.loads(val['body'])
             return data
