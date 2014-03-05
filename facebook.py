@@ -74,6 +74,7 @@ class AdsAPIError(Exception):
     """
     def __init__(self, error):
         data = json.load(error)
+        self.error = data
         self.message = data['error']['message']
         self.code = data['error']['code']
         self.type = data['error']['type']
