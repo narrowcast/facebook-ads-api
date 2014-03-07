@@ -117,6 +117,7 @@ class AdsAPI(object):
                 raise
             return json.load(f)
         except urllib2.HTTPError as e:
+            print 'HTTPError: %s' % e.message
             raise AdsAPIError(e)
         except urllib2.URLError as e:
             print 'URLError: %s' % e.reason
@@ -485,6 +486,62 @@ class AdsAPI(object):
             args['scheduled_publish_time'] = scheduled_publish_time
         return self.make_request(path, 'POST', args, files, batch=batch)
 
+    # New API
+    def create_adcampaign_group(self, account_id, name, campaign_group_status,
+                                objective=None, batch=False):
+        """Creates an ad campaign group for the given account."""
+        path = 'act_%s/adcampaign_groups'
+        args = {
+            'name': name,
+            'campaign_group_status': campaign_group_status,
+        }
+        if objective:
+            args['objective'] = objective
+        return self.make_request(path, 'POST', args, batch=batch)
+
+    # New API
+    def update_adcampaign_group(self, campaign_group_id, name=None,
+                                campaign_group_status=None, objective=None,
+                                batch=False):
+        """Updates condition of the given ad campaign group."""
+        path = '%s' % campaign_group_id
+        args = {}
+        if name:
+            args['name'] = name
+        if campaign_group_status:
+            args['campaign_group_status'] = campaign_group_status
+        if objective:
+            args['objective'] = objective
+        return self.make_request(path, 'POST', args, batch=batch)
+
+    # New API - Need to change 'create_adcampaign' when facebook api is set new api.
+    def _create_adcampaign(self, account_id, campaign_group_id, name,
+                           campaign_status,
+                           daily_budget=None, lifetime_budget=None,
+                           start_time=None, end_time=None, batch=False):
+        """Creates an ad campaign for the given account."""
+        if daily_budget is None and lifetime_budget is None:
+            raise("Either a lifetime_budget or a daily_budget "
+                  "must be set when creating a campaign")
+        if lifetime_budget is not None and end_time is None:
+            raise("end_time is required when lifetime_budget is specified")
+        path = 'act_%s/adcampaigns' % account_id
+        args = {
+            'campaign_group_id': campaign_group_id,
+            'name': name,
+            'campaign_status': campaign_status,
+        }
+        if daily_budget:
+            args['daily_budget'] = daily_budget
+        if lifetime_budget:
+            args['lifetime_budget'] = lifetime_budget
+        if start_time:
+            args['start_time'] = start_time
+        if end_time:
+            args['end_time'] = end_time
+        return self.make_request(path, 'POST', args, batch=batch)
+
+    # Deprecated
     def create_adcampaign(self, account_id, name, campaign_status,
                           daily_budget=None, lifetime_budget=None,
                           start_time=None, end_time=None, batch=False):
@@ -509,6 +566,31 @@ class AdsAPI(object):
             args['end_time'] = end_time
         return self.make_request(path, 'POST', args, batch=batch)
 
+    # New API
+    def update_adcampaign(self, campaign_id, name=None, campaign_status=None,
+                          daily_budget=None, lifetime_budget=None,
+                          end_time=None, batch=False):
+        """Updates condition of the given ad campaign."""
+        path = '%s' % campaign_id
+        args = {}
+        if name:
+            args['name'] = name
+        if campaign_status:
+            args['campaign_status'] = campaign_status
+        if daily_budget:
+            args['daily_budget'] = daily_budget
+        if lifetime_budget:
+            args['lifetime_budget'] = lifetime_budget
+        if end_time:
+            args['end_time'] = end_time
+        return self.make_request(path, 'POST', args, batch=batch)
+
+    # New API
+    def delete_adcampaign(self, campaign_id, batch=False):
+        """Delete the given ad campaign."""
+        path = '%s' % campaign_id
+        return self.make_request(path, 'DELETE', None, batch=batch)
+
     def create_adcreative_type_27(self, account_id, object_id,
                                   auto_update=None, story_id=None,
                                   url_tags=None, name=None, batch=False):
@@ -530,7 +612,8 @@ class AdsAPI(object):
 
     def create_adgroup(self, account_id, name, bid_type, bid_info, campaign_id,
                        creative_id, targeting, conversion_specs=None,
-                       tracking_specs=None, view_tags=None, batch=False):
+                       tracking_specs=None, view_tags=None, objective=None,
+                       batch=False):
         """Creates an adgroup in the given ad camapaign with the given spec."""
         path = 'act_%s/adgroups' % account_id
         args = {
@@ -547,6 +630,8 @@ class AdsAPI(object):
             args['tracking_specs'] = json.dumps(tracking_specs)
         if view_tags:
             args['view_tags'] = json.dumps(view_tags)
+        if objective:
+            args['objective'] = objective
         return self.make_request(path, 'POST', args, batch=batch)
 
     def create_offsite_pixel(self, account_id, name, tag, batch=False):
