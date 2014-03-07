@@ -1,4 +1,3 @@
-import base64
 import codecs
 import hashlib
 import hmac
@@ -173,7 +172,7 @@ class AdsAPI(object):
         return self.make_request(path, 'GET', args, batch=batch)
 
     # New API
-    def get_adcampaign_group(self, campaign_group_id, fields, batch=Fasle):
+    def get_adcampaign_group(self, campaign_group_id, fields, batch=False):
         """Return the fields for the given ad campaign group."""
         path = '%s' % campaign_group_id
         args = {'fields': fields}
@@ -214,7 +213,7 @@ class AdsAPI(object):
 
     def get_adcampaigns(self, account_id, fields, batch=False):
         """Returns the fields of all ad sets from the given ad account."""
-        return self.get_adcampaigns_of_account(account_id, fields, batch=batch):
+        return self.get_adcampaigns_of_account(account_id, fields, batch=batch)
 
     def get_adgroup(self, adgroup_id, fields, batch=False):
         """Returns the fields for the given ad group."""
