@@ -110,7 +110,7 @@ class FacebookAdsAPITest(unittest.TestCase):
 
     def test_get_adreport_stats(self):
         response = self.api.get_adreport_stats(
-            ACCOUNT_ID, 'last_28_days', 'all_days', ['account_id'])
+            ACCOUNT_ID, ['account_id'], 'last_28_days', None, 'all_days')
         self.assertNotIn('error', response)
 
     def test_get_conversion_stats_by_adaccount(self):
@@ -193,7 +193,7 @@ class FacebookAdsAPITest(unittest.TestCase):
 
     def test_create_video_page_post(self):
         try:
-            source = open('afm.mp4', 'rb')            
+            source = open('afm.mp4', 'rb')
             response = self.api.create_video_page_post(PAGE_ID, source=source)
             self.assertNotIn('error', response)
         except facebook.AdsAPIError as e:
