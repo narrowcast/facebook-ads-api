@@ -145,6 +145,19 @@ class AdsAPI(object):
         except urllib2.URLError as e:
             print 'URLError: %s' % e.reason
 
+    def make_labeled_batch_request(self, batch):
+        """Makes a batched request with label against the Facebook Ads API endpoint."""
+        try:
+            labels = batch.keys()
+            queries = batch.values()
+            data = self.make_batch_request(queries)
+            return dict(zip(labels, data))
+        except urllib2.HTTPError as e:
+            print 'HTTPError: %s' % e.error
+            return json.load(e)
+        except urllib2.URLError as e:
+            print 'URLError: %s' % e.reason
+
     def debug_token(self, token):
         """Returns debug information about the given token."""
         path = 'debug_token'
