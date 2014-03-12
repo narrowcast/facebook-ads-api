@@ -117,6 +117,7 @@ class AdsAPI(object):
                 raise
             return json.load(f)
         except urllib2.HTTPError as e:
+            print '%s' % e
             raise AdsAPIError(e)
         except urllib2.URLError as e:
             print 'URLError: %s' % e.reason
@@ -130,17 +131,19 @@ class AdsAPI(object):
         try:
             f = urllib2.urlopen(FACEBOOK_API, urllib.urlencode(args))
             data = json.load(f)
+            # For debugging
+            self.data = data
             for idx, val in enumerate(data):
                 # Workaround code for facebook api server error
-                if val['code'] == 500:
-                    logger.info("Facebook api server has some problem.")
-                    logger.info("(%s's of batch job) %s" % (idx, val))
-                    print ("(%s's of batch job) %s" % (idx, val))
-                    val['body'] = '{"error": {"code": 1, "message": "An unknown error occurred", "type": "UnknownError"}}'
+                # if val['code'] == 500:
+                #     logger.info("Facebook api server has some problem.")
+                #     logger.info("(%s's of batch job) %s" % (idx, val))
+                #     print ("(%s's of batch job) %s" % (idx, val))
+                #     val['body'] = '{"error": {"code": 1, "message": "An unknown error occurred", "type": "UnknownError"}}'
                 data[idx] = json.loads(val['body'])
             return data
         except urllib2.HTTPError as e:
-            print 'HTTPError: %s' % e.error
+            print '%s' % e
             return json.load(e)
         except urllib2.URLError as e:
             print 'URLError: %s' % e.reason
@@ -151,9 +154,11 @@ class AdsAPI(object):
             labels = batch.keys()
             queries = batch.values()
             data = self.make_batch_request(queries)
+            # For debugging
+            self.data = data
             return dict(zip(labels, data))
         except urllib2.HTTPError as e:
-            print 'HTTPError: %s' % e.error
+            print '%s' % e
             return json.load(e)
         except urllib2.URLError as e:
             print 'URLError: %s' % e.reason
@@ -292,7 +297,7 @@ class AdsAPI(object):
                            batch=False):
         """Returns the ad report stats for the given account."""
         if date_preset is None and time_interval is None:
-            raise("Either a date_preset or a time_interval "
+            raise BaseException("Either a date_preset or a time_interval "
                   "must be set when requesting a stats info.")
         path = 'act_%s/reportstats' % account_id
         args = {
@@ -561,10 +566,10 @@ class AdsAPI(object):
                            start_time=None, end_time=None, batch=False):
         """Creates an ad campaign for the given account."""
         if daily_budget is None and lifetime_budget is None:
-            raise("Either a lifetime_budget or a daily_budget "
+            raise BaseException("Either a lifetime_budget or a daily_budget "
                   "must be set when creating a campaign")
         if lifetime_budget is not None and end_time is None:
-            raise("end_time is required when lifetime_budget is specified")
+            raise BaseException("end_time is required when lifetime_budget is specified")
         path = 'act_%s/adcampaigns' % account_id
         args = {
             'campaign_group_id': campaign_group_id,
@@ -587,10 +592,10 @@ class AdsAPI(object):
                           start_time=None, end_time=None, batch=False):
         """Creates an ad campaign for the given account."""
         if daily_budget is None and lifetime_budget is None:
-            raise("Either a lifetime_budget or a daily_budget "
+            raise BaseException("Either a lifetime_budget or a daily_budget "
                   "must be set when creating a campaign")
         if lifetime_budget is not None and end_time is None:
-            raise("end_time is required when lifetime_budget is specified")
+            raise BaseException("end_time is required when lifetime_budget is specified")
         path = 'act_%s/adcampaigns' % account_id
         args = {
             'name': name,
