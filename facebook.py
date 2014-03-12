@@ -1,4 +1,5 @@
 import codecs
+import datetime
 import hashlib
 import hmac
 import io
@@ -291,32 +292,60 @@ class AdsAPI(object):
             args['adgroup_ids'] = json.dumps(adgroup_ids)
         return self.make_request(path, 'GET', args, batch=batch)
 
+    def get_time_interval(self, start, end):
+        """Returns formatted time interval."""
+        if not start or not end:
+            return None
+        end = end + datetime.timedelta(1)
+        time_interval = dict(
+            day_start=dict(day=start.day, month=start.month, year=start.year),
+            day_stop=dict(day=end.day, month=end.month, year=end.year)
+        )
+        return json.dumps(time_interval)
+
     def get_adreport_stats(self, account_id, data_columns, date_preset=None,
-                           time_interval=None, time_increment=None,
+                           date_start=None, date_end=None, time_increment=None,
                            filters=None, actions_group_by=None, async=False,
                            batch=False):
         """Returns the ad report stats for the given account."""
-        if date_preset is None and time_interval is None:
-            raise BaseException("Either a date_preset or a time_interval "
+        if date_preset is None and date_start is None and date_end is None:
+            raise BaseException("Either a date_preset or a date_start/end "
                   "must be set when requesting a stats info.")
         path = 'act_%s/reportstats' % account_id
         args = {
             'data_columns': json.dumps(data_columns),
         }
-        if date_preset is not None:
+        if date_preset:
             args['date_preset'] = date_preset
-        if time_interval is not None:
-            args['time_interval'] = time_interval
-        if time_increment is not None:
+        if date_start and date_end:
+            args['time_interval'] = \
+                self.get_time_interval(date_start, date_end)
+        if time_increment:
             args['time_increment'] = time_increment
-        if filters is not None:
+        if filters:
             args['filters'] = json.dumps(filters)
-        if actions_group_by is not None:
+        if actions_group_by:
             args['actions_group_by'] = actions_group_by
         if async:
             args['async'] = 'true'
-            return self.make_request(path, 'POST', args=args, files={}, batch=batch)
-        return self.make_request(path, 'GET', args=args, files={}, batch=batch)
+            return self.make_request(path, 'POST', args=args, batch=batch)
+        return self.make_request(path, 'GET', args=args, batch=batch)
+
+    # New API
+    def get_async_job_status(self, job_id, batch=False):
+        """Returns the asynchronously requested job status"""
+        path = '%s' % job_id
+        args = {}
+        return self.make_request(path, 'GET', args=args, batch=batch)
+
+    # New API
+    def get_async_job_result(self, account_id, job_id, batch=False):
+        """Returns completed result of the given async job"""
+        path = 'act_%s/reportstats' % account_id
+        args = {
+            'report_run_id': job_id
+        }
+        return self.make_request(path, 'GET', args=args, batch=batch)
 
     # New API
     # def get_adreport_stats_in_time_interval(
