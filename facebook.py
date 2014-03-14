@@ -135,12 +135,6 @@ class AdsAPI(object):
             # For debugging
             self.data = data
             for idx, val in enumerate(data):
-                # Workaround code for facebook api server error
-                # if val['code'] == 500:
-                #     logger.info("Facebook api server has some problem.")
-                #     logger.info("(%s's of batch job) %s" % (idx, val))
-                #     print ("(%s's of batch job) %s" % (idx, val))
-                #     val['body'] = '{"error": {"code": 1, "message": "An unknown error occurred", "type": "UnknownError"}}'
                 data[idx] = json.loads(val['body'])
             return data
         except urllib2.HTTPError as e:
@@ -305,12 +299,11 @@ class AdsAPI(object):
 
     def get_adreport_stats(self, account_id, data_columns, date_preset=None,
                            date_start=None, date_end=None, time_increment=None,
-                           filters=None, actions_group_by=None, async=False,
+                           actions_group_by=None, filters=None, async=False,
                            batch=False):
         """Returns the ad report stats for the given account."""
         if date_preset is None and date_start is None and date_end is None:
-            raise BaseException("Either a date_preset or a date_start/end "
-                  "must be set when requesting a stats info.")
+            raise BaseException("Either a date_preset or a date_start/end must be set when requesting a stats info.")
         path = 'act_%s/reportstats' % account_id
         args = {
             'data_columns': json.dumps(data_columns),
@@ -346,23 +339,6 @@ class AdsAPI(object):
             'report_run_id': job_id
         }
         return self.make_request(path, 'GET', args=args, batch=batch)
-
-    # New API
-    # def get_adreport_stats_in_time_interval(
-    #         self, account_id, data_columns, time_interval, time_increment,
-    #         date_preset=None, filters=None, actions_group_by=None,
-    #         batch=False):
-    #     """Returns the ad report stats in time interval for the given account."""
-    #     path = 'act_%s/reportstats' % account_id
-    #     args = {
-    #         'time_increment': time_increment,
-    #         'data_columns': json.dumps(data_columns),
-    #     }
-    #     if filters is not None:
-    #         args['filters'] = json.dumps(filters)
-    #     if actions_group_by is not None:
-    #         args['actions_group_by'] = actions_group_by
-    #     return self.make_request(path, 'GET', args, batch=batch)
 
     def get_conversion_stats_by_adaccount(self, account_id, batch=False):
         """Returns the aggregated conversion stats for the given ad account."""
@@ -595,8 +571,7 @@ class AdsAPI(object):
                            start_time=None, end_time=None, batch=False):
         """Creates an ad campaign for the given account."""
         if daily_budget is None and lifetime_budget is None:
-            raise BaseException("Either a lifetime_budget or a daily_budget "
-                  "must be set when creating a campaign")
+            raise BaseException("Either a lifetime_budget or a daily_budget must be set when creating a campaign")
         if lifetime_budget is not None and end_time is None:
             raise BaseException("end_time is required when lifetime_budget is specified")
         path = 'act_%s/adcampaigns' % account_id
@@ -621,8 +596,7 @@ class AdsAPI(object):
                           start_time=None, end_time=None, batch=False):
         """Creates an ad campaign for the given account."""
         if daily_budget is None and lifetime_budget is None:
-            raise BaseException("Either a lifetime_budget or a daily_budget "
-                  "must be set when creating a campaign")
+            raise BaseException("Either a lifetime_budget or a daily_budget must be set when creating a campaign")
         if lifetime_budget is not None and end_time is None:
             raise BaseException("end_time is required when lifetime_budget is specified")
         path = 'act_%s/adcampaigns' % account_id
@@ -696,7 +670,7 @@ class AdsAPI(object):
             'bid_info': bid_info,
             'campaign_id': campaign_id,
             'creative': json.dumps({'creative_id': creative_id}),
-            'targeting': targeting,
+            'targeting': json.dumps({"countries": targeting}),
         }
         if conversion_specs:
             args['conversion_specs'] = json.dumps(conversion_specs)
