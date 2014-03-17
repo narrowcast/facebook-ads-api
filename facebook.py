@@ -291,16 +291,36 @@ class AdsAPI(object):
         if not start or not end:
             return None
         end = end + datetime.timedelta(1)
+        if not isinstance(start, datetime.datetime):
+            start = datetime.datetime(start)
+        if not isinstance(end, datetime.datetime):
+            end = datetime.datetime(end)
         time_interval = dict(
             day_start=dict(day=start.day, month=start.month, year=start.year),
             day_stop=dict(day=end.day, month=end.month, year=end.year)
         )
         return json.dumps(time_interval)
 
-    def get_adreport_stats(self, account_id, data_columns, date_preset=None,
-                           date_start=None, date_end=None, time_increment=None,
-                           actions_group_by=None, filters=None, async=False,
+    def get_adreport_stats(self, account_id, date_preset, time_increment,
+                           data_columns, filters=None, actions_group_by=None,
                            batch=False):
+        """Deprecated: use 'get_adreport_stats2' instead."""
+        path = 'act_%s/reportstats' % account_id
+        args = {
+            'date_preset': date_preset,
+            'time_increment': time_increment,
+            'data_columns': json.dumps(data_columns),
+        }
+        if filters is not None:
+            args['filters'] = json.dumps(filters)
+        if actions_group_by is not None:
+            args['actions_group_by'] = actions_group_by
+        return self.make_request(path, 'GET', args, batch=batch)
+
+    def get_adreport_stats2(self, account_id, data_columns, date_preset=None,
+                            date_start=None, date_end=None, time_increment=None,
+                            actions_group_by=None, filters=None, async=False,
+                            batch=False):
         """Returns the ad report stats for the given account."""
         if date_preset is None and date_start is None and date_end is None:
             raise BaseException("Either a date_preset or a date_start/end must be set when requesting a stats info.")
@@ -328,8 +348,7 @@ class AdsAPI(object):
     def get_async_job_status(self, job_id, batch=False):
         """Returns the asynchronously requested job status"""
         path = '%s' % job_id
-        args = {}
-        return self.make_request(path, 'GET', args=args, batch=batch)
+        return self.make_request(path, 'GET', batch=batch)
 
     # New API
     def get_async_job_result(self, account_id, job_id, batch=False):
