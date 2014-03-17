@@ -143,6 +143,7 @@ class AdsAPI(object):
         except urllib2.URLError as e:
             print 'URLError: %s' % e.reason
 
+    # New API
     def make_labeled_batch_request(self, batch):
         """Makes a batched request with label against the Facebook Ads API endpoint."""
         try:
@@ -304,7 +305,7 @@ class AdsAPI(object):
     def get_adreport_stats(self, account_id, date_preset, time_increment,
                            data_columns, filters=None, actions_group_by=None,
                            batch=False):
-        """Deprecated: use 'get_adreport_stats2' instead."""
+        """Returns the ad report stats for the given account."""
         path = 'act_%s/reportstats' % account_id
         args = {
             'date_preset': date_preset,
@@ -317,6 +318,7 @@ class AdsAPI(object):
             args['actions_group_by'] = actions_group_by
         return self.make_request(path, 'GET', args, batch=batch)
 
+    # New API
     def get_adreport_stats2(self, account_id, data_columns, date_preset=None,
                             date_start=None, date_end=None, time_increment=None,
                             actions_group_by=None, filters=None, async=False,

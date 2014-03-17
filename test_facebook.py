@@ -110,7 +110,7 @@ class FacebookAdsAPITest(unittest.TestCase):
 
     def test_get_adreport_stats(self):
         response = self.api.get_adreport_stats(
-            ACCOUNT_ID, ['account_id'], 'last_28_days', None, 'all_days')
+            ACCOUNT_ID, 'last_28_days', 'all_days', ['account_id'])
         self.assertNotIn('error', response)
 
     def test_get_conversion_stats_by_adaccount(self):
