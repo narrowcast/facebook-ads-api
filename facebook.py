@@ -275,6 +275,18 @@ class AdsAPI(object):
         path = 'act_%s/adcampaignstats' % account_id
         return self.make_request(path, 'GET', batch=batch)
 
+    # New API
+    def get_stats_by_adcampaign_group(
+            self, campaign_group_id, fields=None, filters=None, batch=False):
+        """Returns the stats for a Facebook campaign group."""
+        path = '%s/stats' % campaign_group_id
+        args = {}
+        if fields:
+            args['fields'] = json.dumps(fields)
+        if filters:
+            args['filters'] = json.dumps(filters)
+        return self.make_request(path, 'GET', args, batch=batch)
+
     def get_stats_by_adcampaign(self, account_id, campaign_ids=None,
                                 batch=False):
         """Returns the stats for a Facebook campaign by adcampaign."""
@@ -292,6 +304,7 @@ class AdsAPI(object):
             args['adgroup_ids'] = json.dumps(adgroup_ids)
         return self.make_request(path, 'GET', args, batch=batch)
 
+    # New API
     def get_time_interval(self, start, end):
         """Returns formatted time interval."""
         if not start or not end:
@@ -562,8 +575,8 @@ class AdsAPI(object):
             args['scheduled_publish_time'] = scheduled_publish_time
         return self.make_request(path, 'POST', args, files, batch=batch)
 
-    # New API: 2014.03.07, This method is not working.
-    def create_adcampaign_group(self, account_id, name, campaign_group_status,
+    # New API: 2014.03.07, This method is not working caused by facebook error.
+    def _create_adcampaign_group(self, account_id, name, campaign_group_status,
                                 objective=None, batch=False):
         """Creates an ad campaign group for the given account."""
         path = 'act_%s/adcampaign_groups'
@@ -616,7 +629,7 @@ class AdsAPI(object):
             args['end_time'] = end_time
         return self.make_request(path, 'POST', args, batch=batch)
 
-    # Deprecated
+    # Deprecated: this method will be update.
     def create_adcampaign(self, account_id, name, campaign_status,
                           daily_budget=None, lifetime_budget=None,
                           start_time=None, end_time=None, batch=False):
