@@ -101,7 +101,7 @@ class AdsAPI(object):
         if 'access_token' not in args:
             args['access_token'] = self.access_token
         try:
-            if method in ['GET', 'DELETE']:
+            if method == 'GET':
                 url = '%s/%s?%s' % (FACEBOOK_API, path, urllib.urlencode(args))
                 f = urllib2.urlopen(url)
             elif method == 'POST':
@@ -114,6 +114,11 @@ class AdsAPI(object):
                     f = urllib2.urlopen(req)
                 else:
                     f = urllib2.urlopen(url, urllib.urlencode(args))
+            elif method == 'DELETE':
+                url = '%s/%s?%s' % (FACEBOOK_API, path, urllib.urlencode(args))
+                req = urllib2.Request(url)
+                req.get_method = lambda: 'DELETE'
+                f = urllib2.urlopen(req)
             else:
                 raise
             return json.load(f)
@@ -203,7 +208,7 @@ class AdsAPI(object):
     def delete_adcampaign_group(self, campaign_group_id, batch=False):
         """Delete specific campaign group."""
         path = '%s' % campaign_group_id
-        return self.make_request(path, 'DELETE', None, batch=batch)
+        return self.make_request(path, 'DELETE', batch=batch)
 
     def get_adcampaign(self, campaign_id, fields, batch=False):
         """Returns the fields for the given ad campaign."""
