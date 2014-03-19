@@ -82,6 +82,8 @@ class AdsAPIError(Exception):
 
 class AdsAPI(object):
     """A client for the Facebook Ads API."""
+    DATA_LIMIT = 100
+
     def __init__(self, access_token, app_id, app_secret):
         self.access_token = access_token
         self.app_id = app_id
@@ -201,7 +203,10 @@ class AdsAPI(object):
     def get_adcampaign_groups(self, account_id, fields, batch=False):
         """Returns the fields of all ad campaign groups from the given ad account."""
         path = 'act_%s/adcampaign_groups' % account_id
-        args = {'fields': fields}
+        args = {
+            'fields': fields,
+            'limit': self.DATA_LIMIT
+        }
         return self.make_request(path, 'GET', args, batch=batch)
 
     # New API
