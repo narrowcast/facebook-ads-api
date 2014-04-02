@@ -486,21 +486,20 @@ class AdsAPI(object):
             self.get_adaccount(account_id, ['currency'], batch=True),
             self.get_adcampaign(campaign_id, campaign_fields, batch=True),
             self.get_adreport_stats(
-                account_id, campaign_data_columns, date_preset, None, 'all_days',
-                actions_group_by=['action_type'], filters=campaign_filters,
-                batch=True),
+                account_id, date_preset, 'all_days', campaign_data_columns,
+                campaign_filters, ['action_type'], True),
             self.get_adreport_stats(
-                account_id, campaign_data_columns, date_preset, None, 1,
-                filters=campaign_filters, batch=True),
+                account_id, date_preset, 1, campaign_data_columns,
+                campaign_filters, None, True),
             self.get_adreport_stats(
-                account_id, adgroup_data_columns, date_preset, None, 'all_days',
-                filters=campaign_filters, batch=True),
+                account_id, date_preset, 'all_days', adgroup_data_columns,
+                campaign_filters, None, True),
             self.get_adreport_stats(
-                account_id, demographic_data_columns, date_preset, None, 'all_days',
-                filters=campaign_filters, batch=True),
+                account_id, date_preset, 'all_days', demographic_data_columns,
+                campaign_filters, None, True),
             self.get_adreport_stats(
-                account_id, placement_data_columns, date_preset, None, 'all_days',
-                filters=campaign_filters, batch=True),
+                account_id, date_preset, 'all_days', placement_data_columns,
+                campaign_filters, None, True),
         ]
         return self.make_batch_request(batch)
 
