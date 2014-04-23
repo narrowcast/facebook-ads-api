@@ -1,5 +1,5 @@
-import base64
 import codecs
+import datetime
 import hashlib
 import hmac
 import io
@@ -74,6 +74,7 @@ class AdsAPIError(Exception):
     """
     def __init__(self, error):
         data = json.load(error)
+        self.error = data
         self.message = data['error']['message']
         self.code = data['error']['code']
         self.type = data['error']['type']
@@ -81,6 +82,8 @@ class AdsAPIError(Exception):
 
 class AdsAPI(object):
     """A client for the Facebook Ads API."""
+    DATA_LIMIT = 100
+
     def __init__(self, access_token, app_id, app_secret):
         self.access_token = access_token
         self.app_id = app_id
@@ -113,10 +116,16 @@ class AdsAPI(object):
                     f = urllib2.urlopen(req)
                 else:
                     f = urllib2.urlopen(url, urllib.urlencode(args))
+            elif method == 'DELETE':
+                url = '%s/%s?%s' % (FACEBOOK_API, path, urllib.urlencode(args))
+                req = urllib2.Request(url)
+                req.get_method = lambda: 'DELETE'
+                f = urllib2.urlopen(req)
             else:
                 raise
             return json.load(f)
         except urllib2.HTTPError as e:
+            print '%s' % e
             raise AdsAPIError(e)
         except urllib2.URLError as e:
             print 'URLError: %s' % e.reason
@@ -130,15 +139,29 @@ class AdsAPI(object):
         try:
             f = urllib2.urlopen(FACEBOOK_API, urllib.urlencode(args))
             data = json.load(f)
+            # For debugging
+            self.data = data
             for idx, val in enumerate(data):
-                # Workaround code for facebook api server error
-                if val['code'] == 500:
-                    logger.error("Facebook api server has some problem.")
-                    val['body'] = '{"error": {"code": 1, "message": "An unknown error occurred", "type": "UnknownError"}}'
                 data[idx] = json.loads(val['body'])
             return data
         except urllib2.HTTPError as e:
-            print 'HTTPError: %s' % e.code
+            print '%s' % e
+            return json.load(e)
+        except urllib2.URLError as e:
+            print 'URLError: %s' % e.reason
+
+    # New API
+    def make_labeled_batch_request(self, batch):
+        """Makes a batched request with label against the Facebook Ads API endpoint."""
+        try:
+            labels = batch.keys()
+            queries = batch.values()
+            data = self.make_batch_request(queries)
+            # For debugging
+            self.data = data
+            return dict(zip(labels, data))
+        except urllib2.HTTPError as e:
+            print '%s' % e
             return json.load(e)
         except urllib2.URLError as e:
             print 'URLError: %s' % e.reason
@@ -169,17 +192,52 @@ class AdsAPI(object):
         args = {'fields': fields}
         return self.make_request(path, 'GET', args, batch=batch)
 
+    # New API
+    def get_adcampaign_group(self, campaign_group_id, fields, batch=False):
+        """Return the fields for the given ad campaign group."""
+        path = '%s' % campaign_group_id
+        args = {'fields': fields}
+        return self.make_request(path, 'GET', args, batch=batch)
+
+    # New API
+    def get_adcampaign_groups(self, account_id, fields, batch=False):
+        """Returns the fields of all ad campaign groups from the given ad account."""
+        path = 'act_%s/adcampaign_groups' % account_id
+        args = {
+            'fields': fields,
+            'limit': self.DATA_LIMIT
+        }
+        return self.make_request(path, 'GET', args, batch=batch)
+
+    # New API
+    def delete_adcampaign_group(self, campaign_group_id, batch=False):
+        """Delete specific campaign group."""
+        path = '%s' % campaign_group_id
+        return self.make_request(path, 'DELETE', batch=batch)
+
     def get_adcampaign(self, campaign_id, fields, batch=False):
         """Returns the fields for the given ad campaign."""
         path = '%s' % campaign_id
         args = {'fields': fields}
         return self.make_request(path, 'GET', args, batch=batch)
 
-    def get_adcampaigns(self, account_id, fields, batch=False):
-        """Returns the fields of all ad campaigns from the given ad account."""
+    # New API
+    def get_adcampaigns_of_campaign_group(self, campaign_group_id, fields, batch=False):
+        """Return the fields of all adcampaigns from the given adcampaign group."""
+        path = '%s/adcampaigns' % campaign_group_id
+        args = {'fields': fields}
+        return self.make_request(path, 'GET', args, batch=batch)
+
+    # New API
+    def get_adcampaigns_of_account(self, account_id, fields, batch=False):
+        """Returns the fields of all ad sets from the given ad account."""
         path = 'act_%s/adcampaigns' % account_id
         args = {'fields': fields}
         return self.make_request(path, 'GET', args, batch=batch)
+
+    def get_adcampaigns(self, account_id, fields, batch=False):
+        """Returns the fields of all ad sets from the given ad account."""
+        return self.get_adcampaigns_of_account(account_id, fields, batch=batch)
 
     def get_adgroup(self, adgroup_id, fields, batch=False):
         """Returns the fields for the given ad group."""
@@ -222,6 +280,18 @@ class AdsAPI(object):
         path = 'act_%s/adcampaignstats' % account_id
         return self.make_request(path, 'GET', batch=batch)
 
+    # New API
+    def get_stats_by_adcampaign_group(
+            self, campaign_group_id, fields=None, filters=None, batch=False):
+        """Returns the stats for a Facebook campaign group."""
+        path = '%s/stats' % campaign_group_id
+        args = {}
+        if fields:
+            args['fields'] = json.dumps(fields)
+        if filters:
+            args['filters'] = json.dumps(filters)
+        return self.make_request(path, 'GET', args, batch=batch)
+
     def get_stats_by_adcampaign(self, account_id, campaign_ids=None,
                                 batch=False):
         """Returns the stats for a Facebook campaign by adcampaign."""
@@ -239,6 +309,22 @@ class AdsAPI(object):
             args['adgroup_ids'] = json.dumps(adgroup_ids)
         return self.make_request(path, 'GET', args, batch=batch)
 
+    # New API
+    def get_time_interval(self, start, end):
+        """Returns formatted time interval."""
+        if not start or not end:
+            return None
+        end = end + datetime.timedelta(1)
+        if not isinstance(start, datetime.datetime):
+            start = datetime.datetime(start)
+        if not isinstance(end, datetime.datetime):
+            end = datetime.datetime(end)
+        time_interval = dict(
+            day_start=dict(day=start.day, month=start.month, year=start.year),
+            day_stop=dict(day=end.day, month=end.month, year=end.year)
+        )
+        return json.dumps(time_interval)
+
     def get_adreport_stats(self, account_id, date_preset, time_increment,
                            data_columns, filters=None, actions_group_by=None,
                            batch=False):
@@ -254,6 +340,49 @@ class AdsAPI(object):
         if actions_group_by is not None:
             args['actions_group_by'] = actions_group_by
         return self.make_request(path, 'GET', args, batch=batch)
+
+    # New API
+    def get_adreport_stats2(self, account_id, data_columns, date_preset=None,
+                            date_start=None, date_end=None, time_increment=None,
+                            actions_group_by=None, filters=None, async=False,
+                            batch=False):
+        """Returns the ad report stats for the given account."""
+        if date_preset is None and date_start is None and date_end is None:
+            raise BaseException("Either a date_preset or a date_start/end must be set when requesting a stats info.")
+        path = 'act_%s/reportstats' % account_id
+        args = {
+            'data_columns': json.dumps(data_columns),
+        }
+        if date_preset:
+            args['date_preset'] = date_preset
+        if date_start and date_end:
+            args['time_interval'] = \
+                self.get_time_interval(date_start, date_end)
+        if time_increment:
+            args['time_increment'] = time_increment
+        if filters:
+            args['filters'] = json.dumps(filters)
+        if actions_group_by:
+            args['actions_group_by'] = actions_group_by
+        if async:
+            args['async'] = 'true'
+            return self.make_request(path, 'POST', args=args, batch=batch)
+        return self.make_request(path, 'GET', args=args, batch=batch)
+
+    # New API
+    def get_async_job_status(self, job_id, batch=False):
+        """Returns the asynchronously requested job status"""
+        path = '%s' % job_id
+        return self.make_request(path, 'GET', batch=batch)
+
+    # New API
+    def get_async_job_result(self, account_id, job_id, batch=False):
+        """Returns completed result of the given async job"""
+        path = 'act_%s/reportstats' % account_id
+        args = {
+            'report_run_id': job_id
+        }
+        return self.make_request(path, 'GET', args=args, batch=batch)
 
     def get_conversion_stats_by_adaccount(self, account_id, batch=False):
         """Returns the aggregated conversion stats for the given ad account."""
@@ -358,20 +487,19 @@ class AdsAPI(object):
             self.get_adcampaign(campaign_id, campaign_fields, batch=True),
             self.get_adreport_stats(
                 account_id, date_preset, 'all_days', campaign_data_columns,
-                actions_group_by=['action_type'], filters=campaign_filters,
-                batch=True),
+                campaign_filters, ['action_type'], True),
             self.get_adreport_stats(
                 account_id, date_preset, 1, campaign_data_columns,
-                filters=campaign_filters, batch=True),
+                campaign_filters, None, True),
             self.get_adreport_stats(
                 account_id, date_preset, 'all_days', adgroup_data_columns,
-                filters=campaign_filters, batch=True),
+                campaign_filters, None, True),
             self.get_adreport_stats(
                 account_id, date_preset, 'all_days', demographic_data_columns,
-                filters=campaign_filters, batch=True),
+                campaign_filters, None, True),
             self.get_adreport_stats(
                 account_id, date_preset, 'all_days', placement_data_columns,
-                filters=campaign_filters, batch=True),
+                campaign_filters, None, True),
         ]
         return self.make_batch_request(batch)
 
@@ -451,15 +579,69 @@ class AdsAPI(object):
             args['scheduled_publish_time'] = scheduled_publish_time
         return self.make_request(path, 'POST', args, files, batch=batch)
 
+    # New API: 2014.03.07, This method is not working caused by facebook error.
+    def _create_adcampaign_group(self, account_id, name, campaign_group_status,
+                                objective=None, batch=False):
+        """Creates an ad campaign group for the given account."""
+        path = 'act_%s/adcampaign_groups'
+        args = {
+            'name': name,
+            'campaign_group_status': campaign_group_status,
+        }
+        if objective is not None:
+            args['objective'] = objective
+        return self.make_request(path, 'POST', args, batch=batch)
+
+    # New API
+    def update_adcampaign_group(self, campaign_group_id, name=None,
+                                campaign_group_status=None, objective=None,
+                                batch=False):
+        """Updates condition of the given ad campaign group."""
+        path = '%s' % campaign_group_id
+        args = {}
+        if name is not None:
+            args['name'] = name
+        if campaign_group_status is not None:
+            args['campaign_group_status'] = campaign_group_status
+        if objective is not None:
+            args['objective'] = objective
+        return self.make_request(path, 'POST', args, batch=batch)
+
+    # New API: Need to change 'create_adcampaign' when facebook api is set new api.
+    def _create_adcampaign(self, account_id, campaign_group_id, name,
+                           campaign_status,
+                           daily_budget=None, lifetime_budget=None,
+                           start_time=None, end_time=None, batch=False):
+        """Creates an ad campaign for the given account."""
+        if daily_budget is None and lifetime_budget is None:
+            raise BaseException("Either a lifetime_budget or a daily_budget must be set when creating a campaign")
+        if lifetime_budget is not None and end_time is None:
+            raise BaseException("end_time is required when lifetime_budget is specified")
+        path = 'act_%s/adcampaigns' % account_id
+        args = {
+            'campaign_group_id': campaign_group_id,
+            'name': name,
+            'campaign_status': campaign_status,
+        }
+        if daily_budget:
+            args['daily_budget'] = daily_budget
+        if lifetime_budget:
+            args['lifetime_budget'] = lifetime_budget
+        if start_time:
+            args['start_time'] = start_time
+        if end_time:
+            args['end_time'] = end_time
+        return self.make_request(path, 'POST', args, batch=batch)
+
+    # Deprecated: this method will be update.
     def create_adcampaign(self, account_id, name, campaign_status,
                           daily_budget=None, lifetime_budget=None,
                           start_time=None, end_time=None, batch=False):
         """Creates an ad campaign for the given account."""
         if daily_budget is None and lifetime_budget is None:
-            raise("Either a lifetime_budget or a daily_budget "
-                  "must be set when creating a campaign")
+            raise BaseException("Either a lifetime_budget or a daily_budget must be set when creating a campaign")
         if lifetime_budget is not None and end_time is None:
-            raise("end_time is required when lifetime_budget is specified")
+            raise BaseException("end_time is required when lifetime_budget is specified")
         path = 'act_%s/adcampaigns' % account_id
         args = {
             'name': name,
@@ -474,6 +656,31 @@ class AdsAPI(object):
         if end_time:
             args['end_time'] = end_time
         return self.make_request(path, 'POST', args, batch=batch)
+
+    # New API
+    def update_adcampaign(self, campaign_id, name=None, campaign_status=None,
+                          daily_budget=None, lifetime_budget=None,
+                          end_time=None, batch=False):
+        """Updates condition of the given ad campaign."""
+        path = '%s' % campaign_id
+        args = {}
+        if name:
+            args['name'] = name
+        if campaign_status:
+            args['campaign_status'] = campaign_status
+        if daily_budget:
+            args['daily_budget'] = daily_budget
+        if lifetime_budget:
+            args['lifetime_budget'] = lifetime_budget
+        if end_time:
+            args['end_time'] = end_time
+        return self.make_request(path, 'POST', args, batch=batch)
+
+    # New API
+    def delete_adcampaign(self, campaign_id, batch=False):
+        """Delete the given ad campaign."""
+        path = '%s' % campaign_id
+        return self.make_request(path, 'DELETE', batch=batch)
 
     def create_adcreative_type_27(self, account_id, object_id,
                                   auto_update=None, story_id=None,
@@ -496,7 +703,8 @@ class AdsAPI(object):
 
     def create_adgroup(self, account_id, name, bid_type, bid_info, campaign_id,
                        creative_id, targeting, max_bid=None, conversion_specs=None,
-                       tracking_specs=None, view_tags=None, batch=False):
+                       tracking_specs=None, view_tags=None, objective=None,
+                       batch=False):
         """Creates an adgroup in the given ad camapaign with the given spec."""
         path = 'act_%s/adgroups' % account_id
         args = {
@@ -505,7 +713,7 @@ class AdsAPI(object):
             'bid_info': bid_info,
             'campaign_id': campaign_id,
             'creative': json.dumps({'creative_id': creative_id}),
-            'targeting': targeting,
+            'targeting': json.dumps({"countries": targeting}),
         }
         if max_bid:
             assert bid_type == 'CPM', 'can only use max_bid with CPM bidding'
@@ -517,6 +725,8 @@ class AdsAPI(object):
             args['tracking_specs'] = json.dumps(tracking_specs)
         if view_tags:
             args['view_tags'] = json.dumps(view_tags)
+        if objective:
+            args['objective'] = objective
         return self.make_request(path, 'POST', args, batch=batch)
 
     def create_offsite_pixel(self, account_id, name, tag, batch=False):
