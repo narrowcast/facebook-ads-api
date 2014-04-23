@@ -245,15 +245,17 @@ class AdsAPI(object):
         args = {'fields': fields}
         return self.make_request(path, 'GET', args, batch=batch)
 
-    def get_adgroups_by_adaccount(self, account_id, batch=False):
+    def get_adgroups_by_adaccount(self, account_id, fields, batch=False):
         """Returns the fields of all ad groups from the given ad account."""
         path = 'act_%s/adgroups' % account_id
-        return self.make_request(path, 'GET', batch=batch)
+        args = {'fields': fields}
+        return self.make_request(path, 'GET', args, batch=batch)
 
-    def get_adgroups_by_adcampaign(self, campaign_id, batch=False):
+    def get_adgroups_by_adcampaign(self, campaign_id, fields, batch=False):
         """Returns the fields of all ad groups from the given ad campaign."""
         path = '%s/adgroups' % campaign_id
-        return self.make_request(path, 'GET', batch=batch)
+        args = {'fields': fields}
+        return self.make_request(path, 'GET', args, batch=batch)
 
     def get_adcreative(self, creative_id, fields, batch=False):
         """Returns the fields for the given ad creative."""

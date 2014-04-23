@@ -67,11 +67,11 @@ class FacebookAdsAPITest(unittest.TestCase):
         self.assertNotIn('error', response)
 
     def test_get_adgroups_by_adaccount(self):
-        response = self.api.get_adgroups_by_adaccount(ACCOUNT_ID)
+        response = self.api.get_adgroups_by_adaccount(ACCOUNT_ID, ['id'])
         self.assertNotIn('error', response)
 
     def test_get_adgroups_by_adcampaign(self):
-        response = self.api.get_adgroups_by_adcampaign(CAMPAIGN_ID)
+        response = self.api.get_adgroups_by_adcampaign(CAMPAIGN_ID, ['id'])
         self.assertNotIn('error', response)
 
     def test_get_adcreative(self):
