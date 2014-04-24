@@ -579,11 +579,11 @@ class AdsAPI(object):
             args['scheduled_publish_time'] = scheduled_publish_time
         return self.make_request(path, 'POST', args, files, batch=batch)
 
-    # New API: 2014.03.07, This method is not working caused by facebook error.
-    def _create_adcampaign_group(self, account_id, name, campaign_group_status,
+    # New API
+    def create_adcampaign_group(self, account_id, name, campaign_group_status,
                                 objective=None, batch=False):
         """Creates an ad campaign group for the given account."""
-        path = 'act_%s/adcampaign_groups'
+        path = 'act_%s/adcampaign_groups' % account_id
         args = {
             'name': name,
             'campaign_group_status': campaign_group_status,
