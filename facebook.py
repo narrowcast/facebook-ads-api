@@ -91,8 +91,10 @@ class AdsAPI(object):
         h = hmac.new(access_token, app_secret, hashlib.sha256)
         self.appsecret_proof = h.hexdigest()
 
-    def make_request(self, path, method, args={}, files={}, batch=False):
+    def make_request(self, path, method, args=None, files=None, batch=False):
         """Makes a request against the Facebook Ads API endpoint."""
+        args = dict(args or {})
+
         if batch:
             # Then just return a dict for the batch request
             return {
