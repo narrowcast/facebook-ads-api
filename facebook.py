@@ -715,7 +715,7 @@ class AdsAPI(object):
             'bid_info': bid_info,
             'campaign_id': campaign_id,
             'creative': json.dumps({'creative_id': creative_id}),
-            'targeting': json.dumps({"countries": targeting}),
+            'targeting': json.dumps(targeting),
         }
         if conversion_specs:
             args['conversion_specs'] = json.dumps(conversion_specs)
