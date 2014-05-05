@@ -79,6 +79,9 @@ class AdsAPIError(Exception):
         self.code = data['error']['code']
         self.type = data['error']['type']
 
+    def __str__(self):
+        return '(%s %s) %s' % (self.type, self.code, self.message)
+
 
 class AdsAPI(object):
     """A client for the Facebook Ads API."""
