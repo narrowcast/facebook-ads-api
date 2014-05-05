@@ -91,8 +91,10 @@ class AdsAPI(object):
         h = hmac.new(access_token, app_secret, hashlib.sha256)
         self.appsecret_proof = h.hexdigest()
 
-    def make_request(self, path, method, args={}, files={}, batch=False):
+    def make_request(self, path, method, args=None, files=None, batch=False):
         """Makes a request against the Facebook Ads API endpoint."""
+        args = dict(args or {})
+
         if batch:
             # Then just return a dict for the batch request
             return {
@@ -581,11 +583,11 @@ class AdsAPI(object):
             args['scheduled_publish_time'] = scheduled_publish_time
         return self.make_request(path, 'POST', args, files, batch=batch)
 
-    # New API: 2014.03.07, This method is not working caused by facebook error.
-    def _create_adcampaign_group(self, account_id, name, campaign_group_status,
+    # New API
+    def create_adcampaign_group(self, account_id, name, campaign_group_status,
                                 objective=None, batch=False):
         """Creates an ad campaign group for the given account."""
-        path = 'act_%s/adcampaign_groups'
+        path = 'act_%s/adcampaign_groups' % account_id
         args = {
             'name': name,
             'campaign_group_status': campaign_group_status,
@@ -715,7 +717,7 @@ class AdsAPI(object):
             'bid_info': bid_info,
             'campaign_id': campaign_id,
             'creative': json.dumps({'creative_id': creative_id}),
-            'targeting': json.dumps({"countries": targeting}),
+            'targeting': json.dumps(targeting),
         }
         if conversion_specs:
             args['conversion_specs'] = json.dumps(conversion_specs)
