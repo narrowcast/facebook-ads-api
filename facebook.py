@@ -715,7 +715,7 @@ class AdsAPI(object):
         args = {
             'name': name,
             'bid_type': bid_type,
-            'bid_info': bid_info,
+            'bid_info': json.dumps(bid_info),
             'campaign_id': campaign_id,
             'creative': json.dumps({'creative_id': creative_id}),
             'targeting': json.dumps(targeting),
