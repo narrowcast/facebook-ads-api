@@ -730,6 +730,33 @@ class AdsAPI(object):
             args['objective'] = objective
         return self.make_request(path, 'POST', args, batch=batch)
 
+    def update_adgroup(self, adgroup_id, name=None, bid_type=None, bid_info=None,
+                       creative_id=None, targeting=None, conversion_specs=None,
+                       tracking_specs=None, view_tags=None, objective=None,
+                       batch=False):
+        """Updates condition of the given ad group."""
+        path = "%s" % adgroup_id
+        args = {}
+        if name:
+            args['name'] = name
+        if bid_type:
+            args['bid_type'] = bid_type
+        if bid_info:
+            args['bid_info'] = json.dumps(bid_info)
+        if creative_id:
+            args['creative'] = json.dumps({'creative_id': creative_id})
+        if targeting:
+            args['targeting'] = json.dumps(targeting)
+        if conversion_specs:
+            args['conversion_specs'] = json.dumps(conversion_specs)
+        if tracking_specs:
+            args['tracking_specs'] = json.dumps(tracking_specs)
+        if view_tags:
+            args['view_tags'] = json.dumps(view_tags)
+        if objective:
+            args['objective'] = objective
+        return self.make_request(path, 'POST', args, batch=batch)
+
     def create_offsite_pixel(self, account_id, name, tag, batch=False):
         """Creates an offsite pixel for the given account."""
         path = 'act_%s/offsitepixels' % account_id
