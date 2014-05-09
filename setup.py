@@ -18,7 +18,7 @@ class TestCommand(Command):
 
 setup(
     name='facebook-ads-api',
-    version='0.1.30',
+    version='0.1.31',
     author='Chee-Hyung Yoon',
     author_email='yoonchee@gmail.com',
     py_modules=['facebook', ],
