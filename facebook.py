@@ -711,7 +711,7 @@ class AdsAPI(object):
     def create_adgroup(self, account_id, name, bid_type, bid_info, campaign_id,
                        creative_id, targeting, conversion_specs=None,
                        tracking_specs=None, view_tags=None, objective=None,
-                       batch=False):
+                       adgroup_status=None, batch=False):
         """Creates an adgroup in the given ad camapaign with the given spec."""
         path = 'act_%s/adgroups' % account_id
         args = {
@@ -730,9 +730,11 @@ class AdsAPI(object):
             args['view_tags'] = json.dumps(view_tags)
         if objective:
             args['objective'] = objective
+        if adgroup_status:
+            args['adgroup_status'] = adgroup_status
         return self.make_request(path, 'POST', args, batch=batch)
 
-    def update_adgroup(self, adgroup_id, name=None, bid_type=None, bid_info=None,
+    def update_adgroup(self, adgroup_id, name=None, adgroup_status=None, bid_type=None, bid_info=None,
                        creative_id=None, targeting=None, conversion_specs=None,
                        tracking_specs=None, view_tags=None, objective=None,
                        batch=False):
@@ -757,6 +759,8 @@ class AdsAPI(object):
             args['view_tags'] = json.dumps(view_tags)
         if objective:
             args['objective'] = objective
+        if adgroup_status:
+            args['adgroup_status'] = adgroup_status
         return self.make_request(path, 'POST', args, batch=batch)
 
     def create_offsite_pixel(self, account_id, name, tag, batch=False):
