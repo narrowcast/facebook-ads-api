@@ -185,10 +185,10 @@ class AdsAPI(object):
         path = 'act_%s/users' % account_id
         return self.make_request(path, 'GET', batch=batch)
 
-    def get_adaccount(self, account_id, fields, batch=False):
+    def get_adaccount(self, account_id, fields=None, batch=False):
         """Returns the fields of the given ad account."""
         path = 'act_%s' % account_id
-        args = {'fields': fields}
+        args = {'fields': fields} if fields else {}
         return self.make_request(path, 'GET', args, batch=batch)
 
     def get_adaccounts(self, user_id, fields, batch=False):
@@ -240,25 +240,27 @@ class AdsAPI(object):
         args = {'fields': fields}
         return self.make_request(path, 'GET', args, batch=batch)
 
-    def get_adcampaigns(self, account_id, fields, batch=False):
+    def get_adcampaigns(self, account_id, fields=None, batch=False):
         """Returns the fields of all ad sets from the given ad account."""
         return self.get_adcampaigns_of_account(account_id, fields, batch=batch)
 
-    def get_adgroup(self, adgroup_id, fields, batch=False):
+    def get_adgroup(self, adgroup_id, fields=None, batch=False):
         """Returns the fields for the given ad group."""
         path = '%s' % adgroup_id
-        args = {'fields': fields}
+        args = {'fields': fields} if fields else {}
         return self.make_request(path, 'GET', args, batch=batch)
 
-    def get_adgroups_by_adaccount(self, account_id, batch=False):
+    def get_adgroups_by_adaccount(self, account_id, fields=None, batch=False):
         """Returns the fields of all ad groups from the given ad account."""
         path = 'act_%s/adgroups' % account_id
-        return self.make_request(path, 'GET', batch=batch)
+        args = {'fields': fields} if fields else {}
+        return self.make_request(path, 'GET', args, batch=batch)
 
-    def get_adgroups_by_adcampaign(self, campaign_id, batch=False):
+    def get_adgroups_by_adcampaign(self, campaign_id, fields=None, batch=False):
         """Returns the fields of all ad groups from the given ad campaign."""
         path = '%s/adgroups' % campaign_id
-        return self.make_request(path, 'GET', batch=batch)
+        args = {'fields': fields} if fields else {}
+        return self.make_request(path, 'GET', args, batch=batch)
 
     def get_adcreative(self, creative_id, fields, batch=False):
         """Returns the fields for the given ad creative."""
