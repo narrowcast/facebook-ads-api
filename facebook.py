@@ -250,16 +250,16 @@ class AdsAPI(object):
         args = {'fields': fields} if fields else {}
         return self.make_request(path, 'GET', args, batch=batch)
 
-    def get_adgroups_by_adaccount(self, account_id, fields=None, batch=False):
+    def get_adgroups_by_adaccount(self, account_id, status_fields=None, batch=False):
         """Returns the fields of all ad groups from the given ad account."""
         path = 'act_%s/adgroups' % account_id
-        args = {'fields': fields} if fields else {}
+        args = {'adgroup_status': status_fields} if status_fields else {}
         return self.make_request(path, 'GET', args, batch=batch)
 
-    def get_adgroups_by_adcampaign(self, campaign_id, fields=None, batch=False):
+    def get_adgroups_by_adcampaign(self, campaign_id, status_fields=None, batch=False):
         """Returns the fields of all ad groups from the given ad campaign."""
         path = '%s/adgroups' % campaign_id
-        args = {'fields': fields} if fields else {}
+        args = {'adgroup_status': status_fields} if status_fields else {}
         return self.make_request(path, 'GET', args, batch=batch)
 
     def get_adcreative(self, creative_id, fields, batch=False):
