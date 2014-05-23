@@ -618,12 +618,13 @@ class AdsAPI(object):
             args['objective'] = objective
         return self.make_request(path, 'POST', args, batch=batch)
 
+
     # New API: Need to change 'create_adcampaign' when facebook api is set new api.
     def _create_adcampaign(self, account_id, campaign_group_id, name,
                            campaign_status,
                            daily_budget=None, lifetime_budget=None,
                            start_time=None, end_time=None, batch=False):
-        """Creates an ad campaign for the given account."""
+        """Creates an ad campaign for the given account and the given campaign group."""
         if daily_budget is None and lifetime_budget is None:
             raise BaseException("Either a lifetime_budget or a daily_budget must be set when creating a campaign")
         if lifetime_budget is not None and end_time is None:
@@ -644,11 +645,27 @@ class AdsAPI(object):
             args['end_time'] = end_time
         return self.make_request(path, 'POST', args, batch=batch)
 
+
+    def create_adset(self, account_id, campaign_group_id, name,
+                     campaign_status, daily_budget=None, lifetime_budget=None,
+                     start_time=None, end_time=None, batch=False):
+        """
+        Creates an ad campaign for the given account and the given campaign group.
+        Functionality of this method is same as _create_adcampaign method.
+        """
+        return self._create_adcampaign(
+            account_id, campaign_group_id, name, campaign_status,
+            daily_budget, lifetime_budget, start_time, end_time, batch)
+
+
     # Deprecated: this method will be update.
     def create_adcampaign(self, account_id, name, campaign_status,
                           daily_budget=None, lifetime_budget=None,
                           start_time=None, end_time=None, batch=False):
-        """Creates an ad campaign for the given account."""
+        """
+        Creates an ad campaign for the given account.
+        # Deprecated: This method cannot work on facebook new campaign structure.
+        """
         if daily_budget is None and lifetime_budget is None:
             raise BaseException("Either a lifetime_budget or a daily_budget must be set when creating a campaign")
         if lifetime_budget is not None and end_time is None:
@@ -667,6 +684,7 @@ class AdsAPI(object):
         if end_time:
             args['end_time'] = end_time
         return self.make_request(path, 'POST', args, batch=batch)
+
 
     # New API
     def update_adcampaign(self, campaign_id, name=None, campaign_status=None,
