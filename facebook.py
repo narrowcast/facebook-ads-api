@@ -794,10 +794,10 @@ class AdsAPI(object):
         if not rule:
             rule = "{ 'url': { 'i_contains': '' }}"
         args = {
-            'name' = name,
-            'subtype' = subtype,
-            'rule' = rule,
-            'retension_days' = retension_days
+            'name': name,
+            'subtype': subtype,
+            'rule': rule,
+            'retension_days': retension_days
         }
         return self.make_request(path, 'POST', args, batch=batch)
 
