@@ -792,11 +792,11 @@ class AdsAPI(object):
         path = "act_%s/customaudiences" % account_id
         # A custom audience from a website must contain at least one audience rule.
         if not rule:
-            rule = "{ 'url': { 'i_contains': '' }}"
+            rule = {'url': { 'i_contains': '' }}
         args = {
             'name': name,
             'subtype': subtype,
-            'rule': rule,
+            'rule': json.dumps(rule),
             'retention_days': retention_days
         }
         return self.make_request(path, 'POST', args, batch=batch)
