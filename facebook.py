@@ -789,7 +789,7 @@ class AdsAPI(object):
     def create_custom_audience(self, account_id, name, subtype,
                                description=None, rule=None,
                                retention_days=30, batch=False):
-        """Create an custom audience for the given account."""
+        """Create a custom audience for the given account."""
         path = "act_%s/customaudiences" % account_id
         args = {
             'name': name,
@@ -803,13 +803,25 @@ class AdsAPI(object):
     def create_custom_audience_from_website(
             self, account_id, name, domain, description=None,
             retention_days=30, batch=False):
-        """Create an custom audience from website for the given account."""
+        """Create a custom audience from website for the given account."""
         rule = { 'url': {
             'i_contains': domain,
         }}
         return self.create_custom_audience(
             account_id, name, "WEBSITE", description=description, rule=rule,
             retention_days=retention_days, batch=batch)
+
+
+    def create_lookalike_audiecne(self, account_id, name, audience_id,
+                                  lookalike_spec, batch=False):
+        """Create a lookalike audience for the given target audience."""
+        path = "act_%s/customaudiences" % account_id
+        args = {
+            'name': name,
+            'origin_audience_id': audience_id,
+            'lookalike_spec': json.dumps(lookalike_spec),
+        }
+        return self.make_request(path, 'POST', args, batch)
 
 
     def create_offsite_pixel(self, account_id, name, tag, batch=False):
