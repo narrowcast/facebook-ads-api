@@ -785,6 +785,23 @@ class AdsAPI(object):
             args['adgroup_status'] = adgroup_status
         return self.make_request(path, 'POST', args, batch=batch)
 
+
+    def create_custom_audience(self, account_id, name, subtype="WEBSITE",
+                               retension_days=30, rule=None, batch=False):
+        """Create an custom audience for the given account."""
+        path = "act_%s/customaudiences" % account_id
+        # A custom audience from a website must contain at least one audience rule.
+        if not rule:
+            rule = "{ 'url': { 'i_contains': '' }}"
+        args = {
+            'name' = name,
+            'subtype' = subtype,
+            'rule' = rule,
+            'retension_days' = retension_days
+        }
+        return self.make_request(path, 'POST', args, batch=batch)
+
+
     def create_offsite_pixel(self, account_id, name, tag, batch=False):
         """Creates an offsite pixel for the given account."""
         path = 'act_%s/offsitepixels' % account_id
