@@ -787,7 +787,7 @@ class AdsAPI(object):
 
 
     def create_custom_audience(self, account_id, name, subtype="WEBSITE",
-                               retension_days=30, rule=None, batch=False):
+                               retention_days=30, rule=None, batch=False):
         """Create an custom audience for the given account."""
         path = "act_%s/customaudiences" % account_id
         # A custom audience from a website must contain at least one audience rule.
@@ -797,7 +797,7 @@ class AdsAPI(object):
             'name': name,
             'subtype': subtype,
             'rule': rule,
-            'retension_days': retension_days
+            'retention_days': retention_days
         }
         return self.make_request(path, 'POST', args, batch=batch)
 
