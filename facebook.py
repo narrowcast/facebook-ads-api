@@ -786,13 +786,11 @@ class AdsAPI(object):
         return self.make_request(path, 'POST', args, batch=batch)
 
 
-    def create_custom_audience(self, account_id, name, subtype="WEBSITE",
-                               retention_days=30, rule=None, batch=False):
+    def create_custom_audience(self, account_id, name, subtype,
+                               description=None, rule=None,
+                               retention_days=30, batch=False):
         """Create an custom audience for the given account."""
         path = "act_%s/customaudiences" % account_id
-        # A custom audience from a website must contain at least one audience rule.
-        if not rule:
-            rule = {'url': { 'i_contains': '' }}
         args = {
             'name': name,
             'subtype': subtype,
@@ -800,6 +798,18 @@ class AdsAPI(object):
             'retention_days': retention_days
         }
         return self.make_request(path, 'POST', args, batch=batch)
+
+
+    def create_custom_audience_from_website(
+            self, account_id, name, domain, description=None,
+            retention_days=30, batch=False):
+        """Create an custom audience from website for the given account."""
+        rule = { 'url': {
+            'i_contains': domain,
+        }}
+        return self.create_custom_audience(
+            account_id, name, "WEBSITE", description=description, rule=rule,
+            retention_days=retention_days, batch=batch)
 
 
     def create_offsite_pixel(self, account_id, name, tag, batch=False):
