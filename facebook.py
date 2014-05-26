@@ -786,17 +786,24 @@ class AdsAPI(object):
         return self.make_request(path, 'POST', args, batch=batch)
 
 
-    def create_custom_audience(self, account_id, name, subtype,
-                               description=None, rule=None,
+    def create_custom_audience(self, account_id, name, subtype=None,
+                               description=None, rule=None, opt_out_link=None
                                retention_days=30, batch=False):
         """Create a custom audience for the given account."""
         path = "act_%s/customaudiences" % account_id
         args = {
             'name': name,
-            'subtype': subtype,
-            'rule': json.dumps(rule),
-            'retention_days': retention_days
         }
+        if subtype:
+            args['subtype'] = subtype
+        if description:
+            args['description'] = description
+        if rule:
+            args['rule'] = json.dumps(rule)
+        if opt_out_link:
+            args['opt_out_link'] = opt_out_link
+        if retention_days:
+            args['retention_days'] = retention_days
         return self.make_request(path, 'POST', args, batch=batch)
 
 
