@@ -787,7 +787,7 @@ class AdsAPI(object):
 
 
     def create_custom_audience(self, account_id, name, subtype=None,
-                               description=None, rule=None, opt_out_link=None
+                               description=None, rule=None, opt_out_link=None,
                                retention_days=30, batch=False):
         """Create a custom audience for the given account."""
         path = "act_%s/customaudiences" % account_id
