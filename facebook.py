@@ -427,6 +427,16 @@ class AdsAPI(object):
         path = '%s/conversions' % adgroup_id
         return self.make_request(path, 'GET', batch=batch)
 
+    def get_custom_audiences(self, account_id, audience_id, batch=False):
+        """Returns the information for a given audience."""
+        path = 'act_%s/customaudiences' % account_id
+        return self.make_request(path, 'GET', batch=batch)
+
+    def get_remarketing_pixel(self, account_id, batch=False):
+        """Returns the remarketing pixel code for js."""
+        path = 'act_%s/remarketingpixelcode' % account_id
+        return self.make_request(path, 'GET', batch=batch)
+
     def get_offsite_pixel(self, offsite_pixel_id, batch=False):
         """Returns the information for the given offsite pixel."""
         path = '%s' % offsite_pixel_id
