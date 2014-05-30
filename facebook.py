@@ -380,7 +380,7 @@ class AdsAPI(object):
         if filters:
             args['filters'] = json.dumps(filters)
         if actions_group_by:
-            args['actions_group_by'] = actions_group_by
+            args['actions_group_by'] = json.dumps(actions_group_by)
         if async:
             args['async'] = 'true'
             return self.make_request(path, 'POST', args=args, batch=batch)
