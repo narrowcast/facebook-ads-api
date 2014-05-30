@@ -67,11 +67,11 @@ class FacebookAdsAPITest(unittest.TestCase):
         self.assertNotIn('error', response)
 
     def test_get_adgroups_by_adaccount(self):
-        response = self.api.get_adgroups_by_adaccount(ACCOUNT_ID)
+        response = self.api.get_adgroups_by_adaccount(ACCOUNT_ID, ['id'])
         self.assertNotIn('error', response)
 
     def test_get_adgroups_by_adcampaign(self):
-        response = self.api.get_adgroups_by_adcampaign(CAMPAIGN_ID)
+        response = self.api.get_adgroups_by_adcampaign(CAMPAIGN_ID, ['id'])
         self.assertNotIn('error', response)
 
     def test_get_adcreative(self):
@@ -221,7 +221,7 @@ class FacebookAdsAPITest(unittest.TestCase):
         self.assertNotIn('error', response)
 
     def test_create_adgroup(self):
-        targeting = {'countries': ['KR']}
+        targeting = {'geo_locations': {'countries': ['KR']}}
         conversion_specs = [{"action.type": ["offsite_conversion"],
                              "offsite_pixel": [OFFSITE_PIXEL_ID]}]
         response = self.api.create_adgroup(
