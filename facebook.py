@@ -409,7 +409,7 @@ class AdsAPI(object):
     def get_conversion_stats_by_adcampaign(
             self, account_id, campaign_ids=None, include_deleted=False,
             start_time=None, end_time=None, aggregate_days=None,
-            by_impression_time=None, batch=False):
+            by_impression_time=True, batch=False):
         """Returns the conversions stats for all ad campaigns."""
         path = 'act_%s/adcampaignconversions' % account_id
         args = {}
@@ -423,8 +423,8 @@ class AdsAPI(object):
             args['end_time'] = end_time
         if aggregate_days is not None:
             args['aggregate_days'] = aggregate_days
-        if by_impression_time is not None:
-            args['by_impression_time'] = by_impression_time
+        if not by_impression_time:
+            args['by_impression_time'] = 'false'
         return self.make_request(path, 'GET', args, batch=batch)
 
     def get_conversion_stats_by_adgroup(self, account_id, adgroup_ids=None,
