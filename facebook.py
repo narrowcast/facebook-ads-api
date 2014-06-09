@@ -1,4 +1,5 @@
 import codecs
+import calendar
 import datetime
 import hashlib
 import hmac
@@ -110,6 +111,7 @@ class AdsAPI(object):
         try:
             if method == 'GET':
                 url = '%s/%s?%s' % (FACEBOOK_API, path, urllib.urlencode(args))
+                print url
                 f = urllib2.urlopen(url)
             elif method == 'POST':
                 url = '%s/%s' % (FACEBOOK_API, path)
@@ -291,14 +293,20 @@ class AdsAPI(object):
             args = {'hashes': hashes}
         return self.make_request(path, 'GET', args, batch=batch)
 
-    def get_stats_by_adaccount(self, account_id, batch=False):
+    def get_stats_by_adaccount(self, account_id, batch=False, start_time=None, end_time=None):
         """Returns the stats for a Facebook campaign."""
         path = 'act_%s/adcampaignstats' % account_id
-        return self.make_request(path, 'GET', batch=batch)
+        args = {}
+        if start_time:
+            args['start_time'] = self.__parse_time(start_time)
+        if end_time:
+            args['end_time'] = self.__parse_time(end_time)
+        return self.make_request(path, 'GET', args, batch=batch)
 
     # New API
     def get_stats_by_adcampaign_group(
-            self, campaign_group_id, fields=None, filters=None, batch=False):
+            self, campaign_group_id, fields=None, filters=None, batch=False,
+            start_time=None, end_time=None):
         """Returns the stats for a Facebook campaign group."""
         path = '%s/stats' % campaign_group_id
         args = {}
@@ -306,23 +314,37 @@ class AdsAPI(object):
             args['fields'] = json.dumps(fields)
         if filters:
             args['filters'] = json.dumps(filters)
+        if start_time:
+            args['start_time'] = self.__parse_time(start_time)
+        if end_time:
+            args['start_time'] = self.__parse_time(end_time)
         return self.make_request(path, 'GET', args, batch=batch)
 
     def get_stats_by_adcampaign(self, account_id, campaign_ids=None,
-                                batch=False):
+                                batch=False, start_time=None, end_time=None):
         """Returns the stats for a Facebook campaign by adcampaign."""
         path = 'act_%s/adcampaignstats' % account_id
         args = {}
         if campaign_ids is not None:
             args['campaign_ids'] = json.dumps(campaign_ids)
+        if start_time:
+            args['start_time'] = self.__parse_time(start_time)
+        if end_time:
+            args['start_time'] = self.__parse_time(end_time)
         return self.make_request(path, 'GET', args, batch=batch)
 
-    def get_stats_by_adgroup(self, account_id, adgroup_ids=None, batch=False):
+    def get_stats_by_adgroup(
+            self, account_id, adgroup_ids=None, batch=False,
+            start_time=None, end_time=None):
         """Returns the stats for a Facebook campaign by adgroup."""
         path = 'act_%s/adgroupstats' % account_id
         args = {}
         if adgroup_ids is not None:
             args['adgroup_ids'] = json.dumps(adgroup_ids)
+        if start_time:
+            args['start_time'] = self.__parse_time(start_time)
+        if end_time:
+            args['start_time'] = self.__parse_time(end_time)
         return self.make_request(path, 'GET', args, batch=batch)
 
     # New API
@@ -857,3 +879,16 @@ class AdsAPI(object):
             'tag': tag,
         }
         return self.make_request(path, 'POST', args, batch=batch)
+
+    def __parse_time(self, time_obj):
+        """Internal function to transform user supplied time objects into Unix time."""
+        if time_obj:
+            resp = ''
+            if isinstance(time_obj, int) or isinstance(time_obj, str):
+                resp = time_obj
+            elif isinstance(time_obj, datetime.datetime):
+                resp = calendar.timegm(time_obj.timetuple())
+            else:
+                raise Exception("Unknown __parse_time format for {0}".format(time_obj))
+            return str(resp)
+        return None
