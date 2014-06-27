@@ -74,14 +74,22 @@ class AdsAPIError(Exception):
     https://developers.facebook.com/docs/reference/ads-api/error-reference/
     """
     def __init__(self, error):
-        data = json.load(error)
-        self.error = data
-        self.message = data['error']['message']
-        self.code = data['error']['code']
-        self.type = data['error']['type']
+        try:
+            self.error = json.load(error)
+        except ValueError:
+            self.error = error
+            self.message = None
+            self.code = None
+            self.type = None
+            self.str = '{} (invalid JSON)'.format(error)
+        else:
+            self.message = self.error.get('error', {}).get('message')
+            self.code = self.error.get('error', {}).get('code')
+            self.type = self.error.get('error', {}).get('type')
+            self.str = '(%s %s) %s' % (self.type, self.code, self.message)
 
     def __str__(self):
-        return '(%s %s) %s' % (self.type, self.code, self.message)
+        return self.str
 
 
 class AdsAPI(object):
