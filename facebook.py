@@ -601,7 +601,7 @@ class AdsAPI(object):
 
     def create_link_page_post(self, page_id, link, message=None, picture=None,
                               thumbnail=None, name=None, caption=None,
-                              description=None, published=None, batch=False):
+                              description=None, published=None, call_to_action=None, batch=False):
         """Creates a link page post on the given page."""
         # TODO: this method is calling the API twice; combine them into batch
         page_access_token = self.get_page_access_token(page_id)
@@ -625,6 +625,8 @@ class AdsAPI(object):
             args['caption'] = caption
         if description is not None:
             args['description'] = description
+        if call_to_action is not None:
+            args['call_to_action'] = json.dumps(call_to_action)
         return self.make_request(path, 'POST', args, files, batch=batch)
 
     def create_video_page_post(self, page_id, source, title=None,
