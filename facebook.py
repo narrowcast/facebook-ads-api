@@ -599,7 +599,7 @@ class AdsAPI(object):
         args = {'fields': 'access_token'}
         return self.make_request(path, 'GET', args, batch=batch)
 
-    def create_link_page_post(self, page_id, link, message=None, picture=None,
+    def create_link_page_post(self, page_id, link=None, message=None, picture=None,
                               thumbnail=None, name=None, caption=None,
                               description=None, published=None, call_to_action=None, batch=False):
         """Creates a link page post on the given page."""
@@ -607,10 +607,11 @@ class AdsAPI(object):
         page_access_token = self.get_page_access_token(page_id)
         path = '%s/feed' % page_id
         args = {
-            'link': link,
             'access_token': page_access_token['access_token'],
         }
         files = {}
+        if link is not None:
+            args['link'] = link
         if message is not None:
             args['message'] = message
         if picture is not None:
