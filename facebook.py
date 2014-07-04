@@ -222,7 +222,7 @@ class AdsAPI(object):
             'fields': fields,
             'limit': self.DATA_LIMIT
         }
-        return self.__page_results(path, args, batch)
+        return self.make_request(path, 'GET', args, batch=batch)
 
     # New API
     def delete_adcampaign_group(self, campaign_group_id, batch=False):
@@ -254,7 +254,6 @@ class AdsAPI(object):
             'limit': self.DATA_LIMIT
         }
         return self.make_request(path, 'GET', args, batch=batch)
-        # return self.__page_results(path, args, batch)
 
     def get_adcampaigns(self, account_id, fields=None, batch=False):
         """Returns the fields of all ad sets from the given ad account."""
@@ -312,7 +311,7 @@ class AdsAPI(object):
         if end_time:
             args['end_time'] = self.__parse_time(end_time)
         path = 'act_%s/adcampaignstats' % account_id
-        return self.__page_results(path, args, batch)
+        return self.make_request(path, 'GET', args, batch=batch)
 
     # New API
     def get_stats_by_adcampaign_group(
@@ -329,7 +328,7 @@ class AdsAPI(object):
         if end_time:
             args['start_time'] = self.__parse_time(end_time)
         path = '%s/stats' % campaign_group_id
-        return self.__page_results(path, args, batch)
+        return self.make_request(path, 'GET', args, batch=batch)
 
     def get_stats_by_adcampaign(self, account_id, campaign_ids=None,
                                 batch=False, start_time=None, end_time=None):
@@ -342,7 +341,7 @@ class AdsAPI(object):
         if end_time:
             args['start_time'] = self.__parse_time(end_time)
         path = 'act_%s/adcampaignstats' % account_id
-        return self.__page_results(path, args, batch)
+        return self.make_request(path, 'GET', args, batch=batch)
 
     def get_stats_by_adgroup(
             self, account_id, adgroup_ids=None, batch=False,
@@ -356,7 +355,7 @@ class AdsAPI(object):
         if end_time:
             args['start_time'] = self.__parse_time(end_time)
         path = 'act_%s/adgroupstats' % account_id
-        return self.__page_results(path, args, batch)
+        return self.make_request(path, 'GET', args, batch=batch)
 
     # New API
     def get_time_interval(self, start, end):
