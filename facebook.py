@@ -253,8 +253,8 @@ class AdsAPI(object):
             'fields': fields,
             'limit': self.DATA_LIMIT
         }
-        # return self.make_request(path, 'GET', args, batch=batch)
-        return self.__page_results(path, args, batch)
+        return self.make_request(path, 'GET', args, batch=batch)
+        # return self.__page_results(path, args, batch)
 
     def get_adcampaigns(self, account_id, fields=None, batch=False):
         """Returns the fields of all ad sets from the given ad account."""
