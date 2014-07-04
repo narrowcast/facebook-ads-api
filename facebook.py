@@ -249,8 +249,12 @@ class AdsAPI(object):
     def get_adcampaigns_of_account(self, account_id, fields, batch=False):
         """Returns the fields of all ad sets from the given ad account."""
         path = 'act_%s/adcampaigns' % account_id
-        args = {'fields': fields}
-        return self.make_request(path, 'GET', args, batch=batch)
+        args = {
+            'fields': fields,
+            'limit': self.DATA_LIMIT
+        }
+        # return self.make_request(path, 'GET', args, batch=batch)
+        return self.__page_results(path, args, batch)
 
     def get_adcampaigns(self, account_id, fields=None, batch=False):
         """Returns the fields of all ad sets from the given ad account."""
@@ -918,4 +922,4 @@ class AdsAPI(object):
             if not next_page:
                 break
             response = json.load(urllib2.urlopen(next_page))
-        
+
