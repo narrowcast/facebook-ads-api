@@ -74,14 +74,22 @@ class AdsAPIError(Exception):
     https://developers.facebook.com/docs/reference/ads-api/error-reference/
     """
     def __init__(self, error):
-        data = json.load(error)
-        self.error = data
-        self.message = data['error']['message']
-        self.code = data['error']['code']
-        self.type = data['error']['type']
+        try:
+            self.error = json.load(error)
+        except ValueError:
+            self.error = error
+            self.message = None
+            self.code = None
+            self.type = None
+            self.str = '{} (invalid JSON)'.format(error)
+        else:
+            self.message = self.error.get('error', {}).get('message')
+            self.code = self.error.get('error', {}).get('code')
+            self.type = self.error.get('error', {}).get('type')
+            self.str = '(%s %s) %s' % (self.type, self.code, self.message)
 
     def __str__(self):
-        return '(%s %s) %s' % (self.type, self.code, self.message)
+        return self.str
 
 
 class AdsAPI(object):
@@ -95,7 +103,7 @@ class AdsAPI(object):
         h = hmac.new(access_token, app_secret, hashlib.sha256)
         self.appsecret_proof = h.hexdigest()
 
-    def make_request(self, path, method, args=None, files=None, batch=False):
+    def make_request(self, path, method, args=None, files=None, batch=False, raw_path=False):
         """Makes a request against the Facebook Ads API endpoint."""
         args = dict(args or {})
 
@@ -110,11 +118,10 @@ class AdsAPI(object):
             args['access_token'] = self.access_token
         try:
             if method == 'GET':
-                url = '%s/%s?%s' % (FACEBOOK_API, path, urllib.urlencode(args))
-                print url
+                url = path if raw_path else '%s/%s?%s' % (FACEBOOK_API, path, urllib.urlencode(args))
                 f = urllib2.urlopen(url)
             elif method == 'POST':
-                url = '%s/%s' % (FACEBOOK_API, path)
+                url = path if raw_path else '%s/%s' % (FACEBOOK_API, path)
                 if files:
                     encoder = MultipartFormdataEncoder()
                     content_type, body = encoder.encode(args, files)
@@ -124,7 +131,7 @@ class AdsAPI(object):
                 else:
                     f = urllib2.urlopen(url, urllib.urlencode(args))
             elif method == 'DELETE':
-                url = '%s/%s?%s' % (FACEBOOK_API, path, urllib.urlencode(args))
+                url = path if raw_path else '%s/%s?%s' % (FACEBOOK_API, path, urllib.urlencode(args))
                 req = urllib2.Request(url)
                 req.get_method = lambda: 'DELETE'
                 f = urllib2.urlopen(req)
@@ -215,7 +222,7 @@ class AdsAPI(object):
             'fields': fields,
             'limit': self.DATA_LIMIT
         }
-        return self.make_request(path, 'GET', args, batch=batch)
+        return self.__page_results(path, args, batch)
 
     # New API
     def delete_adcampaign_group(self, campaign_group_id, batch=False):
@@ -295,20 +302,19 @@ class AdsAPI(object):
 
     def get_stats_by_adaccount(self, account_id, batch=False, start_time=None, end_time=None):
         """Returns the stats for a Facebook campaign."""
-        path = 'act_%s/adcampaignstats' % account_id
         args = {}
         if start_time:
             args['start_time'] = self.__parse_time(start_time)
         if end_time:
             args['end_time'] = self.__parse_time(end_time)
-        return self.make_request(path, 'GET', args, batch=batch)
+        path = 'act_%s/adcampaignstats' % account_id
+        return self.__page_results(path, args, batch)
 
     # New API
     def get_stats_by_adcampaign_group(
             self, campaign_group_id, fields=None, filters=None, batch=False,
             start_time=None, end_time=None):
         """Returns the stats for a Facebook campaign group."""
-        path = '%s/stats' % campaign_group_id
         args = {}
         if fields:
             args['fields'] = json.dumps(fields)
@@ -318,12 +324,12 @@ class AdsAPI(object):
             args['start_time'] = self.__parse_time(start_time)
         if end_time:
             args['start_time'] = self.__parse_time(end_time)
-        return self.make_request(path, 'GET', args, batch=batch)
+        path = '%s/stats' % campaign_group_id
+        return self.__page_results(path, args, batch)
 
     def get_stats_by_adcampaign(self, account_id, campaign_ids=None,
                                 batch=False, start_time=None, end_time=None):
         """Returns the stats for a Facebook campaign by adcampaign."""
-        path = 'act_%s/adcampaignstats' % account_id
         args = {}
         if campaign_ids is not None:
             args['campaign_ids'] = json.dumps(campaign_ids)
@@ -331,13 +337,13 @@ class AdsAPI(object):
             args['start_time'] = self.__parse_time(start_time)
         if end_time:
             args['start_time'] = self.__parse_time(end_time)
-        return self.make_request(path, 'GET', args, batch=batch)
+        path = 'act_%s/adcampaignstats' % account_id
+        return self.__page_results(path, args, batch)
 
     def get_stats_by_adgroup(
             self, account_id, adgroup_ids=None, batch=False,
             start_time=None, end_time=None):
         """Returns the stats for a Facebook campaign by adgroup."""
-        path = 'act_%s/adgroupstats' % account_id
         args = {}
         if adgroup_ids is not None:
             args['adgroup_ids'] = json.dumps(adgroup_ids)
@@ -345,7 +351,8 @@ class AdsAPI(object):
             args['start_time'] = self.__parse_time(start_time)
         if end_time:
             args['start_time'] = self.__parse_time(end_time)
-        return self.make_request(path, 'GET', args, batch=batch)
+        path = 'act_%s/adgroupstats' % account_id
+        return self.__page_results(path, args, batch)
 
     # New API
     def get_time_interval(self, start, end):
@@ -870,7 +877,7 @@ class AdsAPI(object):
             account_id, name, "WEBSITE", description=description, rule=rule,
             retention_days=retention_days, batch=batch)
 
-    def create_lookalike_audiecne(self, account_id, name, audience_id,
+    def create_lookalike_audience(self, account_id, name, audience_id,
                                   lookalike_spec, batch=False):
         """Create a lookalike audience for the given target audience."""
         path = "act_%s/customaudiences" % account_id
@@ -902,3 +909,13 @@ class AdsAPI(object):
                 raise Exception("Unknown __parse_time format for {0}".format(time_obj))
             return str(resp)
         return None
+
+    def __page_results(self, path, args, batch):
+        response = self.make_request(path, 'GET', args, batch=batch)
+        while True:
+            yield response
+            next_page = response.get('paging', {}).get('next', '')
+            if not next_page:
+                break
+            response = json.load(urllib2.urlopen(next_page))
+        
