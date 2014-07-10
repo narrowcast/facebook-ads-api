@@ -330,6 +330,16 @@ class AdsAPI(object):
         path = '%s/stats' % campaign_group_id
         return self.make_request(path, 'GET', args, batch=batch)
 
+    def get_stats_for_adaccount(self, account_id, batch=False, start_time=0, end_time=None):
+        """Returns the stats for a Facebook campaign group."""
+        args = {}
+        path = 'act_{0}/stats/{1}'.format(account_id, self.__parse_time(start_time))
+        if end_time:
+            path = path + '/{0}'.format(self.__parse_time(end_time))
+        #if end_time:
+        #    args['end_time'] = self.__parse_time(end_time)
+        return self.__page_results(path, args, batch)
+
     def get_stats_by_adcampaign(self, account_id, campaign_ids=None,
                                 batch=False, start_time=None, end_time=None):
         """Returns the stats for a Facebook campaign by adcampaign."""
@@ -339,7 +349,7 @@ class AdsAPI(object):
         if start_time:
             args['start_time'] = self.__parse_time(start_time)
         if end_time:
-            args['start_time'] = self.__parse_time(end_time)
+            args['end_time'] = self.__parse_time(end_time)
         path = 'act_%s/adcampaignstats' % account_id
         return self.make_request(path, 'GET', args, batch=batch)
 
@@ -353,7 +363,7 @@ class AdsAPI(object):
         if start_time:
             args['start_time'] = self.__parse_time(start_time)
         if end_time:
-            args['start_time'] = self.__parse_time(end_time)
+            args['end_time'] = self.__parse_time(end_time)
         path = 'act_%s/adgroupstats' % account_id
         return self.make_request(path, 'GET', args, batch=batch)
 
