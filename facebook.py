@@ -776,6 +776,7 @@ class AdsAPI(object):
         path = '%s' % campaign_id
         return self.make_request(path, 'DELETE', batch=batch)
 
+    # this method is deprecated
     def create_adcreative_type_27(self, account_id, object_id,
                                   auto_update=None, story_id=None,
                                   url_tags=None, name=None, batch=False):
@@ -793,6 +794,15 @@ class AdsAPI(object):
             args['url_tags'] = url_tags
         if name:
             args['name'] = name
+        return self.make_request(path, 'POST', args, batch=batch)
+
+    def create_adcreative(self, account_id, object_story_id=None, batch=False):
+        """Creates an ad creative in the given ad account."""
+        path = 'act_%s/adcreatives' % account_id
+        args = {
+            'object_story_id': object_story_id,
+        }
+        args = {k: v for k, v in args.iteritems() if v is not None}
         return self.make_request(path, 'POST', args, batch=batch)
 
     def create_adgroup(self, account_id, name, bid_type, bid_info, campaign_id,
