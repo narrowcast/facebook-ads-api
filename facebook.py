@@ -76,12 +76,12 @@ class AdsAPIError(Exception):
     def __init__(self, error):
         try:
             self.error = json.load(error)
-        except ValueError:
-            self.error = error
-            self.message = None
+        except:
+            self.message = '{}'.format(error)
             self.code = None
             self.type = None
-            self.str = '{} (invalid JSON)'.format(error)
+            self.str = self.message
+            self.error = {'message': self.message}
         else:
             self.message = self.error.get('error', {}).get('message')
             self.code = self.error.get('error', {}).get('code')
@@ -599,18 +599,22 @@ class AdsAPI(object):
         args = {'fields': 'access_token'}
         return self.make_request(path, 'GET', args, batch=batch)
 
-    def create_link_page_post(self, page_id, link, message=None, picture=None,
+    def create_link_page_post(self, page_id, link=None, message=None, picture=None,
                               thumbnail=None, name=None, caption=None,
-                              description=None, published=None, batch=False):
+                              description=None, published=None, call_to_action=None, batch=False):
         """Creates a link page post on the given page."""
-        # TODO: this method is calling the API twice; combine them into batch
         page_access_token = self.get_page_access_token(page_id)
+        if 'error' in page_access_token:
+            return page_access_token
+        if 'access_token' not in page_access_token:
+            raise AdsAPIError('Could not get page access token. (Do you have manage pages permission?)')
         path = '%s/feed' % page_id
         args = {
-            'link': link,
             'access_token': page_access_token['access_token'],
         }
         files = {}
+        if link is not None:
+            args['link'] = link
         if message is not None:
             args['message'] = message
         if picture is not None:
@@ -625,6 +629,8 @@ class AdsAPI(object):
             args['caption'] = caption
         if description is not None:
             args['description'] = description
+        if call_to_action is not None:
+            args['call_to_action'] = json.dumps(call_to_action)
         return self.make_request(path, 'POST', args, files, batch=batch)
 
     def create_video_page_post(self, page_id, source, title=None,
@@ -921,4 +927,3 @@ class AdsAPI(object):
             if not next_page:
                 break
             response = json.load(urllib2.urlopen(next_page))
-
