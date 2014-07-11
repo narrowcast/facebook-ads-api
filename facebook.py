@@ -599,6 +599,12 @@ class AdsAPI(object):
         args = {'fields': 'access_token'}
         return self.make_request(path, 'GET', args, batch=batch)
 
+    def create_adimage(self, account_id, image_data, batch=False):
+        """Creates an ad image in the given ad account."""
+        path = 'act_%s/adimages' % account_id
+        files = {image_data.name: image_data}
+        return self.make_request(path, 'POST', None, files, batch=batch)
+
     def create_link_page_post(self, page_id, link=None, message=None, picture=None,
                               thumbnail=None, name=None, caption=None,
                               description=None, published=None, call_to_action=None, batch=False):
