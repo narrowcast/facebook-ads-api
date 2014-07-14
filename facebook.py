@@ -599,6 +599,14 @@ class AdsAPI(object):
         args = {'fields': 'access_token'}
         return self.make_request(path, 'GET', args, batch=batch)
 
+    def get_page_post(self, page_post_id, fields=None, batch=False):
+        """Returns data for the give page post."""
+        path = '%s' % page_post_id
+        args = {}
+        if fields:
+            args['fields'] = json.dumps(fields)
+        return self.make_request(path, 'GET', args, batch=batch)
+
     def create_adimage(self, account_id, image_data, batch=False):
         """Creates an ad image in the given ad account."""
         path = 'act_%s/adimages' % account_id
