@@ -767,7 +767,7 @@ class AdsAPI(object):
 
     # New API
     def update_adcampaign(self, campaign_id, name=None, campaign_status=None,
-                          daily_budget=None, lifetime_budget=None,
+                          daily_budget=None, lifetime_budget=None, start_time=None,
                           end_time=None, batch=False):
         """Updates condition of the given ad campaign."""
         path = '%s' % campaign_id
@@ -780,6 +780,8 @@ class AdsAPI(object):
             args['daily_budget'] = daily_budget
         if lifetime_budget:
             args['lifetime_budget'] = lifetime_budget
+        if start_time:
+            args['start_time'] = start_time
         if end_time:
             args['end_time'] = end_time
         return self.make_request(path, 'POST', args, batch=batch)
