@@ -106,6 +106,8 @@ class AdsAPI(object):
     def make_request(self, path, method, args=None, files=None, batch=False, raw_path=False):
         """Makes a request against the Facebook Ads API endpoint."""
         args = dict(args or {})
+        args = {k.encode('utf-8'): unicode(v).encode('utf-8')
+                for k, v in args.items()}
 
         if batch:
             # Then just return a dict for the batch request
@@ -149,6 +151,8 @@ class AdsAPI(object):
         args = {}
         args['access_token'] = self.access_token
         args['batch'] = json.dumps(batch)
+        args = {k.encode('utf-8'): unicode(v).encode('utf-8')
+                for k, v in args.items()}
         logger.info('Making a batched request with %s' % args)
         try:
             f = urllib2.urlopen(FACEBOOK_API, urllib.urlencode(args))
