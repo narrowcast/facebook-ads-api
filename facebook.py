@@ -303,16 +303,6 @@ class AdsAPI(object):
             args = {'hashes': hashes}
         return self.make_request(path, 'GET', args, batch=batch)
 
-    def get_stats_by_adaccount(self, account_id, batch=False, start_time=None, end_time=None):
-        """Returns the stats for a Facebook campaign."""
-        args = {}
-        if start_time:
-            args['start_time'] = self.__parse_time(start_time)
-        if end_time:
-            args['end_time'] = self.__parse_time(end_time)
-        path = 'act_%s/adcampaignstats' % account_id
-        return self.make_request(path, 'GET', args, batch=batch)
-
     # New API
     def get_stats_by_adcampaign_group(
             self, campaign_group_id, fields=None, filters=None, batch=False,
@@ -330,9 +320,10 @@ class AdsAPI(object):
         path = '%s/stats' % campaign_group_id
         return self.make_request(path, 'GET', args, batch=batch)
 
-    def get_stats_for_adaccount(self, account_id, batch=False, start_time=0, end_time=None):
+    def get_stats_by_adaccount(self, account_id, batch=False, start_time=None, end_time=None):
         """Returns the stats for a Facebook campaign group."""
         args = {}
+        start_time = start_time or 0
         path = 'act_{0}/stats/{1}'.format(account_id, self.__parse_time(start_time))
         if end_time:
             path = path + '/{0}'.format(self.__parse_time(end_time))
