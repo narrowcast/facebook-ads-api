@@ -483,8 +483,16 @@ class AdsAPI(object):
         path = 'act_%s/customaudiences' % account_id
         return self.make_request(path, 'GET', batch=batch)
 
+    def get_ads_pixels(self, account_id, fields=None, batch=False):
+        """Returns the remarketing pixel."""
+        path = 'act_%s/adspixels' % account_id
+        args = {'fields': fields} if fields else {}
+        return self.make_request(path, 'GET', args, batch=batch)
+
+    # Deprecated: remove at Oct 1st 2014, breaking change on Facebook.
     def get_remarketing_pixel(self, account_id, batch=False):
-        """Returns the remarketing pixel code for js."""
+        """Returns the remarketing pixel."""
+        logger.warn("This method is deprecated and is replaced with get_ads_pixels.")
         path = 'act_%s/remarketingpixelcode' % account_id
         return self.make_request(path, 'GET', batch=batch)
 
@@ -747,6 +755,7 @@ class AdsAPI(object):
         Creates an ad campaign for the given account.
         Deprecated: This method cannot work on new campaign structure.
         """
+        logger.warn("This method is deprecated.")
         if daily_budget is None and lifetime_budget is None:
             raise BaseException("Either a lifetime_budget or a daily_budget \
                                  must be set when creating a campaign")
@@ -798,6 +807,7 @@ class AdsAPI(object):
                                   auto_update=None, story_id=None,
                                   url_tags=None, name=None, batch=False):
         """Creates an ad creative in the given ad account."""
+        logger.warn("This method is deprecated and is replaced with get_ads_pixels.")
         path = 'act_%s/adcreatives' % account_id
         args = {
             'type': 27,
