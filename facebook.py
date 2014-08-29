@@ -483,6 +483,12 @@ class AdsAPI(object):
         path = 'act_%s/customaudiences' % account_id
         return self.make_request(path, 'GET', batch=batch)
 
+    def get_adspixels(self, account_id, fields=None, batch=False):
+        """Returns the remarketing pixel code for js."""
+        path = 'act_%s/adspixels' % account_id
+        args = {'fields': fields} if fields else {}
+        return self.make_request(path, 'GET', args, batch=batch)
+
     def get_remarketing_pixel(self, account_id, batch=False):
         """Returns the remarketing pixel code for js."""
         path = 'act_%s/remarketingpixelcode' % account_id
