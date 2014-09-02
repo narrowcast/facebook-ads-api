@@ -96,7 +96,8 @@ class AdsAPI(object):
     """A client for the Facebook Ads API."""
     DATA_LIMIT = 100
 
-    def __init__(self, access_token, app_id, app_secret):
+    def __init__(self, access_token, app_id='', app_secret=''):
+        # Most ad account operations can be done without an app id and secret, so allow creating without them.
         self.access_token = access_token
         self.app_id = app_id
         self.app_secret = app_secret
