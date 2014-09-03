@@ -307,16 +307,6 @@ class AdsAPI(object):
             args = {'hashes': hashes}
         return self.make_request(path, 'GET', args, batch=batch)
 
-    def get_stats_by_adaccount(self, account_id, batch=False, start_time=None, end_time=None):
-        """Returns the stats for a Facebook campaign."""
-        args = {}
-        if start_time:
-            args['start_time'] = self.__parse_time(start_time)
-        if end_time:
-            args['end_time'] = self.__parse_time(end_time)
-        path = 'act_%s/adcampaignstats' % account_id
-        return self.make_request(path, 'GET', args, batch=batch)
-
     # New API
     def get_stats_by_adcampaign_group(
             self, campaign_group_id, fields=None, filters=None, batch=False,
@@ -334,6 +324,15 @@ class AdsAPI(object):
         path = '%s/stats' % campaign_group_id
         return self.make_request(path, 'GET', args, batch=batch)
 
+    def get_stats_by_adaccount(self, account_id, batch=False, start_time=None, end_time=None):
+        """Returns the stats for a Facebook campaign group."""
+        args = {}
+        start_time = start_time or 0
+        path = 'act_{0}/stats/{1}'.format(account_id, self.__parse_time(start_time))
+        if end_time:
+            path = path + '/{0}'.format(self.__parse_time(end_time))
+        return self.__page_results(path, args, batch)
+
     def get_stats_by_adcampaign(self, account_id, campaign_ids=None,
                                 batch=False, start_time=None, end_time=None):
         """Returns the stats for a Facebook campaign by adcampaign."""
@@ -343,7 +342,7 @@ class AdsAPI(object):
         if start_time:
             args['start_time'] = self.__parse_time(start_time)
         if end_time:
-            args['start_time'] = self.__parse_time(end_time)
+            args['end_time'] = self.__parse_time(end_time)
         path = 'act_%s/adcampaignstats' % account_id
         return self.make_request(path, 'GET', args, batch=batch)
 
@@ -357,7 +356,7 @@ class AdsAPI(object):
         if start_time:
             args['start_time'] = self.__parse_time(start_time)
         if end_time:
-            args['start_time'] = self.__parse_time(end_time)
+            args['end_time'] = self.__parse_time(end_time)
         path = 'act_%s/adgroupstats' % account_id
         return self.make_request(path, 'GET', args, batch=batch)
 
@@ -484,8 +483,16 @@ class AdsAPI(object):
         path = 'act_%s/customaudiences' % account_id
         return self.make_request(path, 'GET', batch=batch)
 
+    def get_ads_pixels(self, account_id, fields=None, batch=False):
+        """Returns the remarketing pixel."""
+        path = 'act_%s/adspixels' % account_id
+        args = {'fields': fields} if fields else {}
+        return self.make_request(path, 'GET', args, batch=batch)
+
+    # Deprecated: remove at Oct 1st 2014, breaking change on Facebook.
     def get_remarketing_pixel(self, account_id, batch=False):
-        """Returns the remarketing pixel code for js."""
+        """Returns the remarketing pixel."""
+        logger.warn("This method is deprecated and is replaced with get_ads_pixels.")
         path = 'act_%s/remarketingpixelcode' % account_id
         return self.make_request(path, 'GET', batch=batch)
 
@@ -748,6 +755,7 @@ class AdsAPI(object):
         Creates an ad campaign for the given account.
         Deprecated: This method cannot work on new campaign structure.
         """
+        logger.warn("This method is deprecated.")
         if daily_budget is None and lifetime_budget is None:
             raise BaseException("Either a lifetime_budget or a daily_budget \
                                  must be set when creating a campaign")
@@ -801,6 +809,7 @@ class AdsAPI(object):
                                   auto_update=None, story_id=None,
                                   url_tags=None, name=None, batch=False):
         """Creates an ad creative in the given ad account."""
+        logger.warn("This method is deprecated and is replaced with get_ads_pixels.")
         path = 'act_%s/adcreatives' % account_id
         args = {
             'type': 27,
@@ -904,6 +913,21 @@ class AdsAPI(object):
         if retention_days:
             args['retention_days'] = retention_days
         return self.make_request(path, 'POST', args, batch=batch)
+
+    def add_users_to_custom_audience(self, custom_audience_id, tracking_ids,
+                                     schema='MOBILE_ADVERTISER_ID', batch=False):
+        """
+        Adds users to a Custom Audience, based on a list of unique user
+        tracking ids. There is a limit imposed by Facebook that only 10000
+        users may be uploaded at a time.
+        @param schema Allowed values are "UID", "EMAIL_SHA256", "PHONE_SHA256",
+            "MOBILE_ADVERTISER_ID"
+        """
+        path = "%s/users" % custom_audience_id
+        args = {
+            'payload': {'schema': schema, 'data': json.dumps(tracking_ids)}
+        }
+        return self.make_request(path, 'POST', args, batch)
 
     def create_custom_audience_from_website(
             self, account_id, name, domain, description=None,
