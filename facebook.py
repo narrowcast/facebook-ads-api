@@ -887,15 +887,6 @@ class AdsAPI(object):
             args['opt_out_link'] = opt_out_link
         return self.make_request(path, 'POST', args, batch=batch)
 
-    def create_custom_audience_from_website(
-            self, account_id, name, domain, description=None,
-            retention_days=None, batch=False):
-        """Create a custom audience from website for the given account.
-        Deprecated - the FB API no longer has any special distinction for these audiences.
-        """
-        return self.create_custom_audience(
-            account_id, name, description=description, batch=batch)
-
     def create_lookalike_audience(self, account_id, name, audience_id,
                                   lookalike_spec, batch=False):
         """Create a lookalike audience for the given target audience."""
