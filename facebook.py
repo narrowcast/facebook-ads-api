@@ -804,6 +804,7 @@ class AdsAPI(object):
         return self.make_request(path, 'DELETE', batch=batch)
 
         logger.warn("This method is deprecated and is replaced with get_ads_pixels.")
+
     def create_adcreative(self, account_id, object_story_id=None, batch=False):
         """Creates an ad creative in the given ad account."""
         path = 'act_%s/adcreatives' % account_id
@@ -886,6 +887,16 @@ class AdsAPI(object):
         if opt_out_link:
             args['opt_out_link'] = opt_out_link
         return self.make_request(path, 'POST', args, batch=batch)
+
+    def create_custom_audience_from_website(
+            self, account_id, name, domain, description=None,
+            retention_days=None, batch=False):
+        """Create a custom audience from website for the given account.
+        Deprecated - the FB API no longer has any special distinction for these audiences.
+        """
+        logger.warn("This method is deprecated, use create_custom_audience instead.")
+        return self.create_custom_audience(
+            account_id, name, description=description, batch=batch)
 
     def add_users_to_custom_audience(self, custom_audience_id, tracking_ids,
                                      schema='MOBILE_ADVERTISER_ID', batch=False):
