@@ -533,7 +533,7 @@ class AdsAPI(object):
         return self.make_request(path, 'GET', args, batch=batch)
 
     def get_targeting_sentence_lines(self, account_id, targeting_spec, batch=False):
-        """Returns a JSON structure with FB's description of the targeting spec."""
+        """Returns a JSON structure with FB's description of  targeting spec."""
         path = 'act_%s/targetingsentencelines' % account_id
         return self.make_request(path, 'GET', batch=batch)
 
