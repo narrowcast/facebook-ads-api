@@ -535,7 +535,9 @@ class AdsAPI(object):
     def get_targeting_sentence_lines(self, account_id, targeting_spec, batch=False):
         """Returns a JSON structure with FB's description of  targeting spec."""
         path = 'act_%s/targetingsentencelines' % account_id
-        return self.make_request(path, 'GET', batch=batch)
+        args = {'targeting_spec': json.dumps(targeting_spec)}
+
+        return self.make_request(path, 'GET', args, batch=batch)
 
     def get_adcampaign_list(self, account_id):
         """Returns the list of ad campaigns and related data."""
@@ -594,7 +596,7 @@ class AdsAPI(object):
         path = '%s/accounts' % user_id
         args = {}
         if fields:
-            args['fields'] = json.dumps(fields)
+            args['fields'] = dumps(fields)
         return self.make_request(path, 'GET', args, batch=batch)
 
     def get_autocomplete_data(self, q, type, want_localized_name=False,
