@@ -887,6 +887,21 @@ class AdsAPI(object):
             args['opt_out_link'] = opt_out_link
         return self.make_request(path, 'POST', args, batch=batch)
 
+    def add_users_to_custom_audience(self, custom_audience_id, tracking_ids,
+                                     schema='MOBILE_ADVERTISER_ID', batch=False):
+        """
+        Adds users to a Custom Audience, based on a list of unique user
+        tracking ids. There is a limit imposed by Facebook that only 10000
+        users may be uploaded at a time.
+        @param schema Allowed values are "UID", "EMAIL_SHA256", "PHONE_SHA256",
+            "MOBILE_ADVERTISER_ID"
+        """
+        path = "%s/users" % custom_audience_id
+        args = {
+            'payload': {'schema': schema, 'data': json.dumps(tracking_ids)}
+        }
+        return self.make_request(path, 'POST', args, batch)
+
     def create_lookalike_audience(self, account_id, name, audience_id,
                                   lookalike_spec, batch=False):
         """Create a lookalike audience for the given target audience."""
