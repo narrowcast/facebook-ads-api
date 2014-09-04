@@ -96,8 +96,7 @@ class AdsAPI(object):
     """A client for the Facebook Ads API."""
     DATA_LIMIT = 100
 
-    def __init__(self, access_token, app_id='', app_secret=''):
-        # Most ad account operations can be done without an app id and secret, so allow creating without them.
+    def __init__(self, access_token, app_id, app_secret):
         self.access_token = access_token
         self.app_id = app_id
         self.app_secret = app_secret
@@ -480,7 +479,7 @@ class AdsAPI(object):
         return self.make_request(path, 'GET', batch=batch)
 
     def get_custom_audiences(self, account_id, batch=False):
-        """Returns the audiences for the given account."""
+        """Returns the information for a given audience."""
         path = 'act_%s/customaudiences' % account_id
         return self.make_request(path, 'GET', batch=batch)
 
@@ -780,7 +779,7 @@ class AdsAPI(object):
 
     # New API
     def update_adcampaign(self, campaign_id, name=None, campaign_status=None,
-                          daily_budget=None, lifetime_budget=None, start_time=None,
+                          daily_budget=None, lifetime_budget=None,
                           end_time=None, batch=False):
         """Updates condition of the given ad campaign."""
         path = '%s' % campaign_id
@@ -793,8 +792,6 @@ class AdsAPI(object):
             args['daily_budget'] = daily_budget
         if lifetime_budget:
             args['lifetime_budget'] = lifetime_budget
-        if start_time:
-            args['start_time'] = start_time
         if end_time:
             args['end_time'] = end_time
         return self.make_request(path, 'POST', args, batch=batch)
@@ -805,7 +802,26 @@ class AdsAPI(object):
         path = '%s' % campaign_id
         return self.make_request(path, 'DELETE', batch=batch)
 
+    # this method is deprecated
+    def create_adcreative_type_27(self, account_id, object_id,
+                                  auto_update=None, story_id=None,
+                                  url_tags=None, name=None, batch=False):
+        """Creates an ad creative in the given ad account."""
         logger.warn("This method is deprecated and is replaced with get_ads_pixels.")
+        path = 'act_%s/adcreatives' % account_id
+        args = {
+            'type': 27,
+            'object_id': object_id,
+        }
+        if auto_update:
+            args['auto_update'] = auto_update
+        if story_id:
+            args['story_id'] = story_id
+        if url_tags:
+            args['url_tags'] = url_tags
+        if name:
+            args['name'] = name
+        return self.make_request(path, 'POST', args, batch=batch)
 
     def create_adcreative(self, account_id, object_story_id=None, batch=False):
         """Creates an ad creative in the given ad account."""
@@ -878,27 +894,23 @@ class AdsAPI(object):
 
     def create_custom_audience(self, account_id, name, subtype=None,
                                description=None, rule=None, opt_out_link=None,
-                               retention_days=None, batch=False):
+                               retention_days=30, batch=False):
         """Create a custom audience for the given account."""
         path = "act_%s/customaudiences" % account_id
         args = {
             'name': name,
         }
+        if subtype:
+            args['subtype'] = subtype
         if description:
             args['description'] = description
+        if rule:
+            args['rule'] = json.dumps(rule)
         if opt_out_link:
             args['opt_out_link'] = opt_out_link
+        if retention_days:
+            args['retention_days'] = retention_days
         return self.make_request(path, 'POST', args, batch=batch)
-
-    def create_custom_audience_from_website(
-            self, account_id, name, domain, description=None,
-            retention_days=None, batch=False):
-        """Create a custom audience from website for the given account.
-        Deprecated - the FB API no longer has any special distinction for these audiences.
-        """
-        logger.warn("This method is deprecated, use create_custom_audience instead.")
-        return self.create_custom_audience(
-            account_id, name, description=description, batch=batch)
 
     def add_users_to_custom_audience(self, custom_audience_id, tracking_ids,
                                      schema='MOBILE_ADVERTISER_ID', batch=False):
@@ -914,6 +926,17 @@ class AdsAPI(object):
             'payload': {'schema': schema, 'data': json.dumps(tracking_ids)}
         }
         return self.make_request(path, 'POST', args, batch)
+
+    def create_custom_audience_from_website(
+            self, account_id, name, domain, description=None,
+            retention_days=30, batch=False):
+        """Create a custom audience from website for the given account."""
+        rule = {'url': {
+            'i_contains': domain,
+        }}
+        return self.create_custom_audience(
+            account_id, name, "WEBSITE", description=description, rule=rule,
+            retention_days=retention_days, batch=batch)
 
     def create_lookalike_audience(self, account_id, name, audience_id,
                                   lookalike_spec, batch=False):
