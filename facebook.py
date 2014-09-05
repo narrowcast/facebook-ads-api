@@ -531,6 +531,13 @@ class AdsAPI(object):
             args['bid_for'] = bid_for
         return self.make_request(path, 'GET', args, batch=batch)
 
+    def get_targeting_sentence_lines(self, account_id, targeting_spec, batch=False):
+        """Returns FB's description of the targeting spec, provided as a JSON structure."""
+        path = 'act_%s/targetingsentencelines' % account_id
+        args = {'targeting_spec': json.dumps(targeting_spec)}
+
+        return self.make_request(path, 'GET', args, batch=batch)
+
     def get_adcampaign_list(self, account_id):
         """Returns the list of ad campaigns and related data."""
         fields = 'id, name, campaign_status, start_time, end_time, ' \
