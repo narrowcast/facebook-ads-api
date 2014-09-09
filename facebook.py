@@ -396,7 +396,7 @@ class AdsAPI(object):
     def get_adreport_stats2(self, account_id, data_columns, date_preset=None,
                             date_start=None, date_end=None,
                             time_increment=None, actions_group_by=None,
-                            filters=None, async=False, batch=False):
+                            filters=None, async=False, batch=False, offset=None):
         """Returns the ad report stats for the given account."""
         if date_preset is None and date_start is None and date_end is None:
             raise BaseException("Either a date_preset or a date_start/end \
@@ -407,6 +407,8 @@ class AdsAPI(object):
         }
         if date_preset:
             args['date_preset'] = date_preset
+        if offset:
+            args['offset'] = offset
         if date_start and date_end:
             args['time_interval'] = \
                 self.get_time_interval(date_start, date_end)
