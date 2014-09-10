@@ -332,7 +332,7 @@ class AdsAPI(object):
         path = 'act_{0}/stats/{1}'.format(account_id, self.__parse_time(start_time))
         if end_time:
             path = path + '/{0}'.format(self.__parse_time(end_time))
-        return self.__page_results(path, args, batch)
+        return iterate_by_page(self.make_request(path, 'GET', args, batch))
 
     def get_stats_by_adcampaign(self, account_id, campaign_ids=None,
                                 batch=False, start_time=None, end_time=None):
@@ -813,6 +813,7 @@ class AdsAPI(object):
         return self.make_request(path, 'DELETE', batch=batch)
 
         logger.warn("This method is deprecated and is replaced with get_ads_pixels.")
+
     def create_adcreative(self, account_id, object_story_id=None, batch=False):
         """Creates an ad creative in the given ad account."""
         path = 'act_%s/adcreatives' % account_id
@@ -961,11 +962,23 @@ class AdsAPI(object):
             return str(resp)
         return None
 
-    def __page_results(self, path, args, batch):
-        response = self.make_request(path, 'GET', args, batch=batch)
-        while True:
-            yield response
-            next_page = response.get('paging', {}).get('next', '')
-            if not next_page:
-                break
+
+def iterate_by_page(response):
+    response = response
+    while True:
+        yield response
+        next_page = response.get('paging', {}).get('next', '')
+        if not next_page:
+            break
+            response = json.load(urllib2.urlopen(next_page))
+
+
+def iterate_by_item(response):
+    response = response
+    while True:
+        for r in response.get('data', []):
+            yield r
+        next_page = response.get('paging', {}).get('next', '')
+        if not next_page:
+            break
             response = json.load(urllib2.urlopen(next_page))
