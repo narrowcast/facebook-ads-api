@@ -964,6 +964,20 @@ class AdsAPI(object):
 
 
 def iterate_by_page(response):
+    """
+    Generator function that will return one Facebook results page at a time
+
+    Note: Other than ensuring we don't crash, we accept facebook responses
+    regardless of whether they contain paging information or not.
+
+    Params:
+    response - A Facebook Ads API response body that includes pagination
+               sections.
+
+    Yields:
+    An unadultered page of Facebook response data, including data and any
+    provided pagination info.
+    """
     response = response
     while True:
         yield response
@@ -974,6 +988,20 @@ def iterate_by_page(response):
 
 
 def iterate_by_item(response):
+    """
+    Generator function that will return one Facebook results item at a time
+
+    Note: Other than ensuring we don't crash, we accept facebook responses
+    regardless of whether they contain paging information or not.
+
+    Params:
+    response - A Facebook Ads API response body that includes pagination
+               sections.
+
+    Yields:
+    An item from the Facebook response data. It will automatically navigate
+    over any additional pages that Facebook provides.
+    """
     response = response
     while True:
         for r in response.get('data', []):
