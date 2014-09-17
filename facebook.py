@@ -397,7 +397,7 @@ class AdsAPI(object):
     def get_adreport_stats2(self, account_id, data_columns, date_preset=None,
                             date_start=None, date_end=None,
                             time_increment=None, actions_group_by=None,
-                            filters=None, async=False, batch=False):
+                            filters=None, async=False, batch=False, offset=None):
         """Returns the ad report stats for the given account."""
         if date_preset is None and date_start is None and date_end is None:
             raise BaseException("Either a date_preset or a date_start/end \
@@ -408,6 +408,8 @@ class AdsAPI(object):
         }
         if date_preset:
             args['date_preset'] = date_preset
+        if offset:
+            args['offset'] = offset
         if date_start and date_end:
             args['time_interval'] = \
                 self.get_time_interval(date_start, date_end)
@@ -788,7 +790,7 @@ class AdsAPI(object):
     # New API
     def update_adcampaign(self, campaign_id, name=None, campaign_status=None,
                           daily_budget=None, lifetime_budget=None,
-                          end_time=None, batch=False):
+                          start_time=None, end_time=None, batch=False):
         """Updates condition of the given ad campaign."""
         path = '%s' % campaign_id
         args = {}
@@ -800,6 +802,8 @@ class AdsAPI(object):
             args['daily_budget'] = daily_budget
         if lifetime_budget:
             args['lifetime_budget'] = lifetime_budget
+        if start_time:
+            args['start_time'] = start_time
         if end_time:
             args['end_time'] = end_time
         return self.make_request(path, 'POST', args, batch=batch)
@@ -945,6 +949,41 @@ class AdsAPI(object):
             'tag': tag,
         }
         return self.make_request(path, 'POST', args, batch=batch)
+
+    def get_connection_objects(self, account_id,
+                               business_id=None, batch=False):
+        """
+        Returns facebook connection objects for given account
+
+        Params:
+        business_id - restrict query to particular business
+        """
+        path = 'act_{}/connectionobjects'.format(account_id)
+        args = {}
+        if business_id:
+            args['business_id'] = business_id
+
+        return self.make_request(path, 'GET', args, batch=batch)
+
+    def get_broad_targeting_categories(self, account_id,
+                                       user_adclusters=None,
+                                       excluded_user_adclusters=None,
+                                       batch=False):
+        """
+        Get broad targeting categories for the given account
+
+        Params:
+        user_adclusters - Array of ID-name pairs to include.
+        excluded_user_adclusters - Array of ID-name pairs to exclude
+        """
+        path = 'act_{}/broadtargetingcategories'.format(account_id)
+        args = {}
+        if user_adclusters:
+            args['user_adclusters'] = user_adclusters
+        if excluded_user_adclusters:
+            args['excluded_user_adclusters'] = excluded_user_adclusters
+
+        return self.make_request(path, 'GET', args, batch=batch)
 
     def __parse_time(self, time_obj):
         """Internal function to transform user supplied time objects into Unix time."""
