@@ -300,6 +300,12 @@ class AdsAPI(object):
         args = {'fields': fields}
         return self.make_request(path, 'GET', args, batch=batch)
 
+    def get_adcreatives_by_adgroup(self, adgroup_id, fields, batch=False):
+        """Returns the fields for the given ad creative."""
+        path = '{0}/adcreatives'.format(adgroup_id)
+        args = {'fields': fields}
+        return self.make_request(path, 'GET', args, batch=batch)
+
     def get_adimages(self, account_id, hashes=None, batch=False):
         """Returns the ad images for the given ad account."""
         path = 'act_%s/adimages' % account_id
