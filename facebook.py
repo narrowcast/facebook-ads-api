@@ -984,7 +984,7 @@ def iterate_by_page(response):
         next_page = response.get('paging', {}).get('next', '')
         if not next_page:
             break
-            response = json.load(urllib2.urlopen(next_page))
+        response = json.load(urllib2.urlopen(next_page))
 
 
 def iterate_by_item(response):
@@ -1009,4 +1009,4 @@ def iterate_by_item(response):
         next_page = response.get('paging', {}).get('next', '')
         if not next_page:
             break
-            response = json.load(urllib2.urlopen(next_page))
+        response = json.load(urllib2.urlopen(next_page))
