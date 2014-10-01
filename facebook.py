@@ -403,7 +403,9 @@ class AdsAPI(object):
     def get_adreport_stats2(self, account_id, data_columns, date_preset=None,
                             date_start=None, date_end=None,
                             time_increment=None, actions_group_by=None,
-                            filters=None, async=False, batch=False, offset=None):
+                            filters=None, async=False, batch=False, offset=None,
+                            sort_by=None, sort_dir=None, summary=None,
+                            limit=None):
         """Returns the ad report stats for the given account."""
         if date_preset is None and date_start is None and date_end is None:
             raise BaseException("Either a date_preset or a date_start/end \
@@ -425,6 +427,14 @@ class AdsAPI(object):
             args['filters'] = json.dumps(filters)
         if actions_group_by:
             args['actions_group_by'] = json.dumps(actions_group_by)
+        if sort_by:
+            args['sort_by'] = sort_by
+        if sort_dir:
+            args['sort_dir'] = sort_dir
+        if summary is not None:
+            args['summary'] = summary
+        if limit:
+            args['limit'] = limit
         if async:
             args['async'] = 'true'
             return self.make_request(path, 'POST', args=args, batch=batch)
