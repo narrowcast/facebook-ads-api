@@ -931,12 +931,11 @@ class AdsAPI(object):
         path = "act_%s/customaudiences" % account_id
         args = {
             'name': name,
+            'subtype': "WEBSITE"
         }
         rule = {'url': {
             'i_contains': domain,
         }}
-        if subtype:
-            args['subtype'] = "WEBSITE"
         if description:
             args['description'] = description
         if rule:
