@@ -892,6 +892,7 @@ class AdsAPI(object):
             args['adgroup_status'] = adgroup_status
         return self.make_request(path, 'POST', args, batch=batch)
 
+    # Deprecated: this method will be update at Oct 1st 2014, breaking change on Facebook..
     def create_custom_audience(self, account_id, name, subtype=None,
                                description=None, rule=None, opt_out_link=None,
                                retention_days=30, batch=False):
@@ -912,16 +913,39 @@ class AdsAPI(object):
             args['retention_days'] = retention_days
         return self.make_request(path, 'POST', args, batch=batch)
 
+    # def create_custom_audience_from_website(
+    #         self, account_id, name, domain, description=None,
+    #         retention_days=30, batch=False):
+    #     """Create a custom audience from website for the given account."""
+    #     rule = {'url': {
+    #         'i_contains': domain,
+    #     }}
+    #     return self.create_custom_audience(
+    #         account_id, name, "WEBSITE", description=description, rule=rule,
+    #         retention_days=retention_days, batch=batch)
+
     def create_custom_audience_from_website(
             self, account_id, name, domain, description=None,
-            retention_days=30, batch=False):
+            retention_days=30, prefill=True, batch=False):
         """Create a custom audience from website for the given account."""
+        path = "act_%s/customaudiences" % account_id
+        args = {
+            'name': name,
+        }
         rule = {'url': {
             'i_contains': domain,
         }}
-        return self.create_custom_audience(
-            account_id, name, "WEBSITE", description=description, rule=rule,
-            retention_days=retention_days, batch=batch)
+        if subtype:
+            args['subtype'] = "WEBSITE"
+        if description:
+            args['description'] = description
+        if rule:
+            args['rule'] = json.dumps(rule)
+        if prefill:
+            args['prefill'] = prefill
+        if retention_days:
+            args['retention_days'] = retention_days
+        return self.make_request(path, 'POST', args, batch=batch)
 
     def create_lookalike_audience(self, account_id, name, audience_id,
                                   lookalike_spec, batch=False):
