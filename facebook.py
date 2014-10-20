@@ -936,14 +936,12 @@ class AdsAPI(object):
         rule = {'url': {
             'i_contains': domain,
         }}
-        if description:
-            args['description'] = description
         if rule:
             args['rule'] = json.dumps(rule)
-        if prefill:
-            args['prefill'] = prefill
         if retention_days:
             args['retention_days'] = retention_days
+        if prefill:
+            args['prefill'] = prefill
         return self.make_request(path, 'POST', args, batch=batch)
 
     def create_lookalike_audience(self, account_id, name, audience_id,
