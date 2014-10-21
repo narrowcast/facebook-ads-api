@@ -96,7 +96,8 @@ class AdsAPI(object):
     """A client for the Facebook Ads API."""
     DATA_LIMIT = 100
 
-    def __init__(self, access_token, app_id, app_secret):
+    def __init__(self, access_token, app_id='', app_secret=''):
+        # Most ad account operations can be done without an app id and secret, so allow creating without them.
         self.access_token = access_token
         self.app_id = app_id
         self.app_secret = app_secret
@@ -299,6 +300,12 @@ class AdsAPI(object):
         args = {'fields': fields}
         return self.make_request(path, 'GET', args, batch=batch)
 
+    def get_adcreatives_by_adgroup(self, adgroup_id, fields, batch=False):
+        """Returns the fields for the given ad creative."""
+        path = '{0}/adcreatives'.format(adgroup_id)
+        args = {'fields': fields}
+        return self.make_request(path, 'GET', args, batch=batch)
+
     def get_adimages(self, account_id, hashes=None, batch=False):
         """Returns the ad images for the given ad account."""
         path = 'act_%s/adimages' % account_id
@@ -331,7 +338,7 @@ class AdsAPI(object):
         path = 'act_{0}/stats/{1}'.format(account_id, self.__parse_time(start_time))
         if end_time:
             path = path + '/{0}'.format(self.__parse_time(end_time))
-        return self.__page_results(path, args, batch)
+        return iterate_by_page(self.make_request(path, 'GET', args, batch))
 
     def get_stats_by_adcampaign(self, account_id, campaign_ids=None,
                                 batch=False, start_time=None, end_time=None):
@@ -396,7 +403,9 @@ class AdsAPI(object):
     def get_adreport_stats2(self, account_id, data_columns, date_preset=None,
                             date_start=None, date_end=None,
                             time_increment=None, actions_group_by=None,
-                            filters=None, async=False, batch=False):
+                            filters=None, async=False, batch=False, offset=None,
+                            sort_by=None, sort_dir=None, summary=None,
+                            limit=None):
         """Returns the ad report stats for the given account."""
         if date_preset is None and date_start is None and date_end is None:
             raise BaseException("Either a date_preset or a date_start/end \
@@ -407,6 +416,8 @@ class AdsAPI(object):
         }
         if date_preset:
             args['date_preset'] = date_preset
+        if offset:
+            args['offset'] = offset
         if date_start and date_end:
             args['time_interval'] = \
                 self.get_time_interval(date_start, date_end)
@@ -416,6 +427,14 @@ class AdsAPI(object):
             args['filters'] = json.dumps(filters)
         if actions_group_by:
             args['actions_group_by'] = json.dumps(actions_group_by)
+        if sort_by:
+            args['sort_by'] = sort_by
+        if sort_dir:
+            args['sort_dir'] = sort_dir
+        if summary is not None:
+            args['summary'] = summary
+        if limit:
+            args['limit'] = limit
         if async:
             args['async'] = 'true'
             return self.make_request(path, 'POST', args=args, batch=batch)
@@ -529,6 +548,13 @@ class AdsAPI(object):
             args['creative_action_spec'] = creative_action_spec
         if bid_for is not None:
             args['bid_for'] = bid_for
+        return self.make_request(path, 'GET', args, batch=batch)
+
+    def get_targeting_sentence_lines(self, account_id, targeting_spec, batch=False):
+        """Returns FB's description of the targeting spec, provided as a JSON structure."""
+        path = 'act_%s/targetingsentencelines' % account_id
+        args = {'targeting_spec': json.dumps(targeting_spec)}
+
         return self.make_request(path, 'GET', args, batch=batch)
 
     def get_adcampaign_list(self, account_id):
@@ -780,7 +806,7 @@ class AdsAPI(object):
     # New API
     def update_adcampaign(self, campaign_id, name=None, campaign_status=None,
                           daily_budget=None, lifetime_budget=None,
-                          end_time=None, batch=False):
+                          start_time=None, end_time=None, batch=False):
         """Updates condition of the given ad campaign."""
         path = '%s' % campaign_id
         args = {}
@@ -792,6 +818,8 @@ class AdsAPI(object):
             args['daily_budget'] = daily_budget
         if lifetime_budget:
             args['lifetime_budget'] = lifetime_budget
+        if start_time:
+            args['start_time'] = start_time
         if end_time:
             args['end_time'] = end_time
         return self.make_request(path, 'POST', args, batch=batch)
@@ -802,26 +830,7 @@ class AdsAPI(object):
         path = '%s' % campaign_id
         return self.make_request(path, 'DELETE', batch=batch)
 
-    # this method is deprecated
-    def create_adcreative_type_27(self, account_id, object_id,
-                                  auto_update=None, story_id=None,
-                                  url_tags=None, name=None, batch=False):
-        """Creates an ad creative in the given ad account."""
         logger.warn("This method is deprecated and is replaced with get_ads_pixels.")
-        path = 'act_%s/adcreatives' % account_id
-        args = {
-            'type': 27,
-            'object_id': object_id,
-        }
-        if auto_update:
-            args['auto_update'] = auto_update
-        if story_id:
-            args['story_id'] = story_id
-        if url_tags:
-            args['url_tags'] = url_tags
-        if name:
-            args['name'] = name
-        return self.make_request(path, 'POST', args, batch=batch)
 
     def create_adcreative(self, account_id, object_story_id=None, batch=False):
         """Creates an ad creative in the given ad account."""
@@ -914,6 +923,21 @@ class AdsAPI(object):
             args['retention_days'] = retention_days
         return self.make_request(path, 'POST', args, batch=batch)
 
+    def add_users_to_custom_audience(self, custom_audience_id, tracking_ids,
+                                     schema='MOBILE_ADVERTISER_ID', batch=False):
+        """
+        Adds users to a Custom Audience, based on a list of unique user
+        tracking ids. There is a limit imposed by Facebook that only 10000
+        users may be uploaded at a time.
+        @param schema Allowed values are "UID", "EMAIL_SHA256", "PHONE_SHA256",
+            "MOBILE_ADVERTISER_ID"
+        """
+        path = "%s/users" % custom_audience_id
+        args = {
+            'payload': {'schema': schema, 'data': json.dumps(tracking_ids)}
+        }
+        return self.make_request(path, 'POST', args, batch)
+
     def create_custom_audience_pixel(self, account_id, batch=False):
         """Create a custom audience pixel for the given account.
         This method only needed once per ad account."""
@@ -960,6 +984,41 @@ class AdsAPI(object):
         }
         return self.make_request(path, 'POST', args, batch=batch)
 
+    def get_connection_objects(self, account_id,
+                               business_id=None, batch=False):
+        """
+        Returns facebook connection objects for given account
+
+        Params:
+        business_id - restrict query to particular business
+        """
+        path = 'act_{}/connectionobjects'.format(account_id)
+        args = {}
+        if business_id:
+            args['business_id'] = business_id
+
+        return self.make_request(path, 'GET', args, batch=batch)
+
+    def get_broad_targeting_categories(self, account_id,
+                                       user_adclusters=None,
+                                       excluded_user_adclusters=None,
+                                       batch=False):
+        """
+        Get broad targeting categories for the given account
+
+        Params:
+        user_adclusters - Array of ID-name pairs to include.
+        excluded_user_adclusters - Array of ID-name pairs to exclude
+        """
+        path = 'act_{}/broadtargetingcategories'.format(account_id)
+        args = {}
+        if user_adclusters:
+            args['user_adclusters'] = user_adclusters
+        if excluded_user_adclusters:
+            args['excluded_user_adclusters'] = excluded_user_adclusters
+
+        return self.make_request(path, 'GET', args, batch=batch)
+
     def __parse_time(self, time_obj):
         """Internal function to transform user supplied time objects into Unix time."""
         if time_obj:
@@ -973,11 +1032,51 @@ class AdsAPI(object):
             return str(resp)
         return None
 
-    def __page_results(self, path, args, batch):
-        response = self.make_request(path, 'GET', args, batch=batch)
-        while True:
-            yield response
-            next_page = response.get('paging', {}).get('next', '')
-            if not next_page:
-                break
-            response = json.load(urllib2.urlopen(next_page))
+
+def iterate_by_page(response):
+    """
+    Generator function that will return one Facebook results page at a time
+
+    Note: Other than ensuring we don't crash, we accept facebook responses
+    regardless of whether they contain paging information or not.
+
+    Params:
+    response - A Facebook Ads API response body that includes pagination
+               sections.
+
+    Yields:
+    An unadultered page of Facebook response data, including data and any
+    provided pagination info.
+    """
+    response = response
+    while True:
+        yield response
+        next_page = response.get('paging', {}).get('next', '')
+        if not next_page:
+            break
+        response = json.load(urllib2.urlopen(next_page))
+
+
+def iterate_by_item(response):
+    """
+    Generator function that will return one Facebook results item at a time
+
+    Note: Other than ensuring we don't crash, we accept facebook responses
+    regardless of whether they contain paging information or not.
+
+    Params:
+    response - A Facebook Ads API response body that includes pagination
+               sections.
+
+    Yields:
+    An item from the Facebook response data. It will automatically navigate
+    over any additional pages that Facebook provides.
+    """
+    response = response
+    while True:
+        for r in response.get('data', []):
+            yield r
+        next_page = response.get('paging', {}).get('next', '')
+        if not next_page:
+            break
+        response = json.load(urllib2.urlopen(next_page))
