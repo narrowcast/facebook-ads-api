@@ -338,7 +338,7 @@ class AdsAPI(object):
         path = 'act_{0}/stats/{1}'.format(account_id, self.__parse_time(start_time))
         if end_time:
             path = path + '/{0}'.format(self.__parse_time(end_time))
-        return iterate_by_page(self.make_request(path, 'GET', args, batch))
+        return iterate_by_page(self.make_request(path, 'GET', args, batch=batch))
 
     def get_stats_by_adcampaign(self, account_id, campaign_ids=None,
                                 batch=False, start_time=None, end_time=None):
