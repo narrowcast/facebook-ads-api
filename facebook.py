@@ -327,7 +327,7 @@ class AdsAPI(object):
         if start_time:
             args['start_time'] = self.__parse_time(start_time)
         if end_time:
-            args['start_time'] = self.__parse_time(end_time)
+            args['end_time'] = self.__parse_time(end_time)
         path = '%s/stats' % campaign_group_id
         return self.make_request(path, 'GET', args, batch=batch)
 
