@@ -146,6 +146,7 @@ class AdsAPI(object):
             raise AdsAPIError(e)
         except urllib2.URLError as e:
             print 'URLError: %s' % e.reason
+            raise
 
     def make_batch_request(self, batch):
         """Makes a batched request against the Facebook Ads API endpoint."""
