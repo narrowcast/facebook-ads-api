@@ -146,6 +146,7 @@ class AdsAPI(object):
             raise AdsAPIError(e)
         except urllib2.URLError as e:
             print 'URLError: %s' % e.reason
+            raise
 
     def make_batch_request(self, batch):
         """Makes a batched request against the Facebook Ads API endpoint."""
@@ -300,6 +301,12 @@ class AdsAPI(object):
         args = {'fields': fields}
         return self.make_request(path, 'GET', args, batch=batch)
 
+    def get_adcreatives_by_adgroup(self, adgroup_id, fields, batch=False):
+        """Returns the fields for the given ad creative."""
+        path = '{0}/adcreatives'.format(adgroup_id)
+        args = {'fields': fields}
+        return self.make_request(path, 'GET', args, batch=batch)
+
     def get_adimages(self, account_id, hashes=None, batch=False):
         """Returns the ad images for the given ad account."""
         path = 'act_%s/adimages' % account_id
@@ -321,7 +328,7 @@ class AdsAPI(object):
         if start_time:
             args['start_time'] = self.__parse_time(start_time)
         if end_time:
-            args['start_time'] = self.__parse_time(end_time)
+            args['end_time'] = self.__parse_time(end_time)
         path = '%s/stats' % campaign_group_id
         return self.make_request(path, 'GET', args, batch=batch)
 
@@ -332,7 +339,7 @@ class AdsAPI(object):
         path = 'act_{0}/stats/{1}'.format(account_id, self.__parse_time(start_time))
         if end_time:
             path = path + '/{0}'.format(self.__parse_time(end_time))
-        return iterate_by_page(self.make_request(path, 'GET', args, batch))
+        return iterate_by_page(self.make_request(path, 'GET', args, batch=batch))
 
     def get_stats_by_adcampaign(self, account_id, campaign_ids=None,
                                 batch=False, start_time=None, end_time=None):
@@ -397,7 +404,9 @@ class AdsAPI(object):
     def get_adreport_stats2(self, account_id, data_columns, date_preset=None,
                             date_start=None, date_end=None,
                             time_increment=None, actions_group_by=None,
-                            filters=None, async=False, batch=False, offset=None):
+                            filters=None, async=False, batch=False, offset=None,
+                            sort_by=None, sort_dir=None, summary=None,
+                            limit=None):
         """Returns the ad report stats for the given account."""
         if date_preset is None and date_start is None and date_end is None:
             raise BaseException("Either a date_preset or a date_start/end \
@@ -419,6 +428,14 @@ class AdsAPI(object):
             args['filters'] = json.dumps(filters)
         if actions_group_by:
             args['actions_group_by'] = json.dumps(actions_group_by)
+        if sort_by:
+            args['sort_by'] = sort_by
+        if sort_dir:
+            args['sort_dir'] = sort_dir
+        if summary is not None:
+            args['summary'] = summary
+        if limit:
+            args['limit'] = limit
         if async:
             args['async'] = 'true'
             return self.make_request(path, 'POST', args=args, batch=batch)
@@ -885,10 +902,12 @@ class AdsAPI(object):
             args['adgroup_status'] = adgroup_status
         return self.make_request(path, 'POST', args, batch=batch)
 
+    # Deprecated: this method will be update at Oct 1st 2014, breaking change on Facebook..
     def create_custom_audience(self, account_id, name, subtype=None,
                                description=None, rule=None, opt_out_link=None,
                                retention_days=30, batch=False):
         """Create a custom audience for the given account."""
+        logger.warn("This method is deprecated. This method will be changed in order to support new rule of facebook ads api.")
         path = "act_%s/customaudiences" % account_id
         args = {
             'name': name,
@@ -920,16 +939,31 @@ class AdsAPI(object):
         }
         return self.make_request(path, 'POST', args, batch)
 
+    def create_custom_audience_pixel(self, account_id, batch=False):
+        """Create a custom audience pixel for the given account.
+        This method only needed once per ad account."""
+        path = "act_%s/adspixels" % account_id
+        return self.make_request(path, 'POST', batch=batch)
+
     def create_custom_audience_from_website(
             self, account_id, name, domain, description=None,
-            retention_days=30, batch=False):
+            retention_days=30, prefill=True, batch=False):
         """Create a custom audience from website for the given account."""
+        path = "act_%s/customaudiences" % account_id
+        args = {
+            'name': name,
+            'subtype': "WEBSITE"
+        }
         rule = {'url': {
             'i_contains': domain,
         }}
-        return self.create_custom_audience(
-            account_id, name, "WEBSITE", description=description, rule=rule,
-            retention_days=retention_days, batch=batch)
+        if rule:
+            args['rule'] = json.dumps(rule)
+        if retention_days:
+            args['retention_days'] = retention_days
+        if prefill:
+            args['prefill'] = prefill
+        return self.make_request(path, 'POST', args, batch=batch)
 
     def create_lookalike_audience(self, account_id, name, audience_id,
                                   lookalike_spec, batch=False):
