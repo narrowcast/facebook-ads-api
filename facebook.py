@@ -618,6 +618,7 @@ class AdsAPI(object):
             args['fields'] = json.dumps(fields)
         return self.make_request(path, 'GET', args, batch=batch)
 
+    # This appears to be deprecated.
     def get_autocomplete_data(self, q, type, want_localized_name=False,
                               list=None, limit=None, batch=False):
         """Returns the autocomplete data for the given query and type."""
@@ -629,6 +630,13 @@ class AdsAPI(object):
             args['list'] = list
         if limit:
             args['limit'] = limit
+        return self.make_request(path, 'GET', args, batch=batch)
+
+    def get_search(self, type, params, batch=False):
+        """ Performs a generic Facebook search, e.g. for geolocations, interests """
+        path = 'search'
+        args = {'type': type}
+        args.update(params)
         return self.make_request(path, 'GET', args, batch=batch)
 
     def get_page_access_token(self, page_id, batch=False):
