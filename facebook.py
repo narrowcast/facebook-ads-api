@@ -1,8 +1,6 @@
 import codecs
 import calendar
 import datetime
-import hashlib
-import hmac
 import io
 import json
 import logging
@@ -101,8 +99,6 @@ class AdsAPI(object):
         self.access_token = access_token
         self.app_id = app_id
         self.app_secret = app_secret
-        h = hmac.new(access_token, app_secret, hashlib.sha256)
-        self.appsecret_proof = h.hexdigest()
 
     def make_request(self, path, method, args=None, files=None, batch=False, raw_path=False):
         """Makes a request against the Facebook Ads API endpoint."""
@@ -910,12 +906,10 @@ class AdsAPI(object):
             args['adgroup_status'] = adgroup_status
         return self.make_request(path, 'POST', args, batch=batch)
 
-    # Deprecated: this method will be update at Oct 1st 2014, breaking change on Facebook..
     def create_custom_audience(self, account_id, name, subtype=None,
                                description=None, rule=None, opt_out_link=None,
                                retention_days=30, batch=False):
         """Create a custom audience for the given account."""
-        logger.warn("This method is deprecated. This method will be changed in order to support new rule of facebook ads api.")
         path = "act_%s/customaudiences" % account_id
         args = {
             'name': name,
