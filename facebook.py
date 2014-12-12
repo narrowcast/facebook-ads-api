@@ -532,17 +532,18 @@ class AdsAPI(object):
         path = 'act_%s/ratecard' % account_id
         return self.make_request(path, 'GET', batch=batch)
 
-    def get_reach_estimate(self, account_id, currency, targeting_spec,
+    def get_reach_estimate(self, account_id, targeting_spec, currency=None,
                            creative_action_spec=None,
                            bid_for=None, batch=False):
         """Returns the reach estimate for the given currency and targeting."""
         path = 'act_%s/reachestimate' % account_id
         args = {
-            'currency': currency,
-            'targeting_spec': targeting_spec,
+            'targeting_spec': json.dumps(targeting_spec),
         }
+        if currency is  not None:
+            args['currency'] = json.dumps(currency)
         if creative_action_spec is not None:
-            args['creative_action_spec'] = creative_action_spec
+            args['creative_action_spec'] = json.dumps(creative_action_spec)
         if bid_for is not None:
             args['bid_for'] = bid_for
         return self.make_request(path, 'GET', args, batch=batch)
