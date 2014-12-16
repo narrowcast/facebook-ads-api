@@ -94,11 +94,20 @@ class AdsAPI(object):
     """A client for the Facebook Ads API."""
     DATA_LIMIT = 100
 
-    def __init__(self, access_token, app_id='', app_secret=''):
-        # Most ad account operations can be done without an app id and secret, so allow creating without them.
+    def __init__(self, access_token, app_id='', app_secret='', version=None):
+        """
+        :param access_token: The API access token
+        :param app_id: An optional App id, current only used for debug_token.
+        :param app_secret: An optional App secret, currently only used for debug_token
+        :param version: Facebook API version, e.g. "2.2". It's currently optional but will be required soon.
+        """
         self.access_token = access_token
         self.app_id = app_id
         self.app_secret = app_secret
+        if version:
+            self.api_root = '{}/v{}'.format(FACEBOOK_API, version)
+        else:
+            self.api_root = FACEBOOK_API
 
     def make_request(self, path, method, args=None, files=None, batch=False, raw_path=False):
         """Makes a request against the Facebook Ads API endpoint."""
@@ -117,10 +126,10 @@ class AdsAPI(object):
             args['access_token'] = self.access_token
         try:
             if method == 'GET':
-                url = path if raw_path else '%s/%s?%s' % (FACEBOOK_API, path, urllib.urlencode(args))
+                url = path if raw_path else '%s/%s?%s' % (self.api_root, path, urllib.urlencode(args))
                 f = urllib2.urlopen(url)
             elif method == 'POST':
-                url = path if raw_path else '%s/%s' % (FACEBOOK_API, path)
+                url = path if raw_path else '%s/%s' % (self.api_root, path)
                 if files:
                     encoder = MultipartFormdataEncoder()
                     content_type, body = encoder.encode(args, files)
@@ -130,7 +139,7 @@ class AdsAPI(object):
                 else:
                     f = urllib2.urlopen(url, urllib.urlencode(args))
             elif method == 'DELETE':
-                url = path if raw_path else '%s/%s?%s' % (FACEBOOK_API, path, urllib.urlencode(args))
+                url = path if raw_path else '%s/%s?%s' % (self.api_root, path, urllib.urlencode(args))
                 req = urllib2.Request(url)
                 req.get_method = lambda: 'DELETE'
                 f = urllib2.urlopen(req)
@@ -153,7 +162,7 @@ class AdsAPI(object):
                 for k, v in args.items()}
         logger.info('Making a batched request with %s' % args)
         try:
-            f = urllib2.urlopen(FACEBOOK_API, urllib.urlencode(args))
+            f = urllib2.urlopen(self.api_root, urllib.urlencode(args))
             data = json.load(f)
             # For debugging
             self.data = data
