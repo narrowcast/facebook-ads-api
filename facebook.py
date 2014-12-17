@@ -943,7 +943,7 @@ class AdsAPI(object):
         """
         path = "%s/users" % custom_audience_id
         args = {
-            'payload': {'schema': schema, 'data': json.dumps(tracking_ids)}
+            'payload': json.dumps({'schema': schema, 'data': tracking_ids})
         }
         return self.make_request(path, 'POST', args, batch)
 
