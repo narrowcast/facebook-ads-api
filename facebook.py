@@ -409,7 +409,7 @@ class AdsAPI(object):
                             limit=None):
         """Returns the ad report stats for the given account."""
         if date_preset is None and date_start is None and date_end is None:
-            raise BaseException("Either a date_preset or a date_start/end \
+            raise AdsAPIError("Either a date_preset or a date_start/end \
                                 must be set when requesting a stats info.")
         path = 'act_%s/reportstats' % account_id
         args = {
@@ -750,10 +750,10 @@ class AdsAPI(object):
         """Creates an ad campaign for the given account and
            the given campaign group."""
         if daily_budget is None and lifetime_budget is None:
-            raise BaseException("Either a lifetime_budget or a daily_budget \
+            raise AdsAPIError("Either a lifetime_budget or a daily_budget \
                                 must be set when creating a campaign")
         if lifetime_budget is not None and end_time is None:
-            raise BaseException("end_time is required when lifetime_budget \
+            raise AdsAPIError("end_time is required when lifetime_budget \
                                 is specified")
         path = 'act_%s/adcampaigns' % account_id
         args = {
@@ -792,10 +792,10 @@ class AdsAPI(object):
         """
         logger.warn("This method is deprecated.")
         if daily_budget is None and lifetime_budget is None:
-            raise BaseException("Either a lifetime_budget or a daily_budget \
+            raise AdsAPIError("Either a lifetime_budget or a daily_budget \
                                  must be set when creating a campaign")
         if lifetime_budget is not None and end_time is None:
-            raise BaseException("end_time is required when lifetime_budget \
+            raise AdsAPIError("end_time is required when lifetime_budget \
                                 is specified")
         path = 'act_%s/adcampaigns' % account_id
         args = {
