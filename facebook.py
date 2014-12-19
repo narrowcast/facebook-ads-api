@@ -838,10 +838,12 @@ class AdsAPI(object):
 
         logger.warn("This method is deprecated and is replaced with get_ads_pixels.")
 
-    def create_adcreative(self, account_id, object_story_id=None, object_story_spec=None, batch=False):
+    def create_adcreative(self, account_id, name=None, object_story_id=None, object_story_spec=None, batch=False):
         """Creates an ad creative in the given ad account."""
         path = 'act_%s/adcreatives' % account_id
         args = {}
+        if name:
+            args['name'] = name
         if object_story_id:
             args['object_story_id'] = object_story_id
         if object_story_spec:
