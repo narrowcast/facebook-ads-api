@@ -148,7 +148,9 @@ class AdsAPI(object):
             return json.load(f)
         except urllib2.HTTPError as e:
             print '%s' % e
-            raise AdsAPIError(e)
+            err = AdsAPIError(e)
+            logger.info('API Error: {}'.format(err.message))
+            raise err
         except urllib2.URLError as e:
             print 'URLError: %s' % e.reason
             raise
