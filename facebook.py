@@ -121,7 +121,7 @@ class AdsAPI(object):
                 'method': method,
                 'relative_url': '%s?%s' % (path, urllib.urlencode(args))
             }
-        logger.info('Making a %s request at %s with %s' % (method, path, args))
+        logger.info('Making a %s request at %s/%s with %s' % (method, self.api_root, path, args))
         if 'access_token' not in args:
             args['access_token'] = self.access_token
         try:
