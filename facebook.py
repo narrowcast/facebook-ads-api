@@ -720,7 +720,6 @@ class AdsAPI(object):
             args['scheduled_publish_time'] = scheduled_publish_time
         return self.make_request(path, 'POST', args, files, batch=batch)
 
-    # New API
     def create_adcampaign_group(self, account_id, name, campaign_group_status,
                                 objective=None, batch=False):
         """Creates an ad campaign group for the given account."""
@@ -733,7 +732,6 @@ class AdsAPI(object):
             args['objective'] = objective
         return self.make_request(path, 'POST', args, batch=batch)
 
-    # New API
     def update_adcampaign_group(self, campaign_group_id, name=None,
                                 campaign_group_status=None, objective=None,
                                 batch=False):
@@ -748,19 +746,20 @@ class AdsAPI(object):
             args['objective'] = objective
         return self.make_request(path, 'POST', args, batch=batch)
 
-    # New API: Need to change 'create_adcampaign' when facebook api is set new api.
-    def _create_adcampaign(self, account_id, campaign_group_id, name,
-                           campaign_status,
-                           daily_budget=None, lifetime_budget=None,
-                           start_time=None, end_time=None, batch=False):
-        """Creates an ad campaign for the given account and
-           the given campaign group."""
+    def create_adset(self, account_id, campaign_group_id, name,
+                     campaign_status, daily_budget=None, lifetime_budget=None,
+                     start_time=None, end_time=None,
+                     bid_type=None, promoted_object=None, targeting=None, batch=False):
+        """
+        Creates an adset (formerly called ad campaign) for the given account and the campaign (formerly called "campaign group").
+        """
         if daily_budget is None and lifetime_budget is None:
             raise AdsAPIError("Either a lifetime_budget or a daily_budget \
                                 must be set when creating a campaign")
         if lifetime_budget is not None and end_time is None:
             raise AdsAPIError("end_time is required when lifetime_budget \
                                 is specified")
+
         path = 'act_%s/adcampaigns' % account_id
         args = {
             'campaign_group_id': campaign_group_id,
@@ -775,54 +774,20 @@ class AdsAPI(object):
             args['start_time'] = start_time
         if end_time:
             args['end_time'] = end_time
+        if bid_type:
+            args['bid_type'] = bid_type
+        if promoted_object:
+            args['promoted_object'] = json.dumps(promoted_object)
+        if targeting:
+            args['targeting'] = json.dumps(targeting)
+
         return self.make_request(path, 'POST', args, batch=batch)
 
-    def create_adset(self, account_id, campaign_group_id, name,
-                     campaign_status, daily_budget=None, lifetime_budget=None,
-                     start_time=None, end_time=None, batch=False):
-        """
-        Creates an ad campaign for the given account and the campaign group.
-        Functionality of this method is same as _create_adcampaign method.
-        """
-        return self._create_adcampaign(
-            account_id, campaign_group_id, name, campaign_status,
-            daily_budget, lifetime_budget, start_time, end_time, batch)
-
-    # Deprecated: this method will be update.
-    def create_adcampaign(self, account_id, name, campaign_status,
+    def update_adset(self, campaign_id, name=None, campaign_status=None,
                           daily_budget=None, lifetime_budget=None,
-                          start_time=None, end_time=None, batch=False):
-        """
-        Creates an ad campaign for the given account.
-        Deprecated: This method cannot work on new campaign structure.
-        """
-        logger.warn("This method is deprecated.")
-        if daily_budget is None and lifetime_budget is None:
-            raise AdsAPIError("Either a lifetime_budget or a daily_budget \
-                                 must be set when creating a campaign")
-        if lifetime_budget is not None and end_time is None:
-            raise AdsAPIError("end_time is required when lifetime_budget \
-                                is specified")
-        path = 'act_%s/adcampaigns' % account_id
-        args = {
-            'name': name,
-            'campaign_status': campaign_status,
-        }
-        if daily_budget:
-            args['daily_budget'] = daily_budget
-        if lifetime_budget:
-            args['lifetime_budget'] = lifetime_budget
-        if start_time:
-            args['start_time'] = start_time
-        if end_time:
-            args['end_time'] = end_time
-        return self.make_request(path, 'POST', args, batch=batch)
-
-    # New API
-    def update_adcampaign(self, campaign_id, name=None, campaign_status=None,
-                          daily_budget=None, lifetime_budget=None,
-                          start_time=None, end_time=None, batch=False):
-        """Updates condition of the given ad campaign."""
+                          start_time=None, end_time=None,
+                          bid_type=None, promoted_object=None, targeting=None, batch=False):
+        """Updates the given adset."""
         path = '%s' % campaign_id
         args = {}
         if name:
@@ -837,6 +802,13 @@ class AdsAPI(object):
             args['start_time'] = start_time
         if end_time:
             args['end_time'] = end_time
+        if bid_type:
+            args['bid_type'] = bid_type
+        if promoted_object:
+            args['promoted_object'] = json.dumps(promoted_object)
+        if targeting:
+            args['targeting'] = json.dumps(targeting)
+
         return self.make_request(path, 'POST', args, batch=batch)
 
     # New API
