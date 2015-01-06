@@ -752,7 +752,7 @@ class AdsAPI(object):
     def create_adset(self, account_id, campaign_group_id, name,
                      campaign_status, daily_budget=None, lifetime_budget=None,
                      start_time=None, end_time=None,
-                     bid_type=None, promoted_object=None, targeting=None, batch=False):
+                     bid_type=None, bid_info=None, promoted_object=None, targeting=None, batch=False):
         """
         Creates an adset (formerly called ad campaign) for the given account and the campaign (formerly called "campaign group").
         """
@@ -779,6 +779,8 @@ class AdsAPI(object):
             args['end_time'] = end_time
         if bid_type:
             args['bid_type'] = bid_type
+        if bid_info:
+            args['bid_info'] = bid_info
         if promoted_object:
             args['promoted_object'] = json.dumps(promoted_object)
         if targeting:
@@ -789,7 +791,7 @@ class AdsAPI(object):
     def update_adset(self, campaign_id, name=None, campaign_status=None,
                           daily_budget=None, lifetime_budget=None,
                           start_time=None, end_time=None,
-                          bid_type=None, promoted_object=None, targeting=None, batch=False):
+                          bid_type=None, bid_info=None, promoted_object=None, targeting=None, batch=False):
         """Updates the given adset."""
         path = '%s' % campaign_id
         args = {}
@@ -807,6 +809,8 @@ class AdsAPI(object):
             args['end_time'] = end_time
         if bid_type:
             args['bid_type'] = bid_type
+        if bid_info:
+            args['bid_info'] = bid_info
         if promoted_object:
             args['promoted_object'] = json.dumps(promoted_object)
         if targeting:
@@ -819,8 +823,6 @@ class AdsAPI(object):
         """Delete the given ad campaign."""
         path = '%s' % campaign_id
         return self.make_request(path, 'DELETE', batch=batch)
-
-        logger.warn("This method is deprecated and is replaced with get_ads_pixels.")
 
     def create_adcreative(self, account_id, name=None, object_story_id=None, object_story_spec=None, batch=False):
         """Creates an ad creative in the given ad account."""
@@ -835,22 +837,23 @@ class AdsAPI(object):
 
         return self.make_request(path, 'POST', args, batch=batch)
 
-    def create_adgroup(self, account_id, name, bid_info, campaign_id,
-                       creative_id, max_bid=None,
+    def create_adgroup(self, account_id, name, campaign_id,
+                       creative_id, bid_info=None, max_bid=None,
                        tracking_specs=None, view_tags=None, objective=None,
                        adgroup_status=None, batch=False):
         """Creates an adgroup in the given ad camapaign with the given spec."""
         path = 'act_%s/adgroups' % account_id
         args = {
             'name': name,
-            'bid_info': json.dumps(bid_info),
             'campaign_id': campaign_id,
             'creative': json.dumps({'creative_id': creative_id}),
         }
         if max_bid:
             # can only use max_bid with CPM bidding
             args['max_bid'] = max_bid
-            del args['bid_info']  # get rid of bid_info
+        elif bid_info:
+            args['bid_info'] = json.dumps(bid_info)
+
         if tracking_specs:
             args['tracking_specs'] = json.dumps(tracking_specs)
         if view_tags:
