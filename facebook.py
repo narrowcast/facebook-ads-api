@@ -941,17 +941,21 @@ class AdsAPI(object):
         return self.make_request(path, 'POST', args, batch=batch)
 
     def add_users_to_custom_audience(self, custom_audience_id, tracking_ids,
-                                     schema='MOBILE_ADVERTISER_ID', batch=False):
+                                     schema='MOBILE_ADVERTISER_ID', app_ids=None, batch=False):
         """
         Adds users to a Custom Audience, based on a list of unique user
         tracking ids. There is a limit imposed by Facebook that only 10000
         users may be uploaded at a time.
         @param schema Allowed values are "UID", "EMAIL_SHA256", "PHONE_SHA256",
             "MOBILE_ADVERTISER_ID"
+        @param app_ids List of app ids. This is required for schema type UID, as of API v2.2
         """
         path = "%s/users" % custom_audience_id
+        payload = {'schema': schema, 'data': tracking_ids}
+        if app_ids:
+            payload['app_ids'] = app_ids
         args = {
-            'payload': json.dumps({'schema': schema, 'data': tracking_ids})
+            'payload': json.dumps(payload)
         }
         return self.make_request(path, 'POST', args, batch)
 
