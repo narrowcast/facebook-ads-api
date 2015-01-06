@@ -835,26 +835,22 @@ class AdsAPI(object):
 
         return self.make_request(path, 'POST', args, batch=batch)
 
-    def create_adgroup(self, account_id, name, bid_type, bid_info, campaign_id,
-                       creative_id, targeting, max_bid=None, conversion_specs=None,
+    def create_adgroup(self, account_id, name, bid_info, campaign_id,
+                       creative_id, max_bid=None,
                        tracking_specs=None, view_tags=None, objective=None,
                        adgroup_status=None, batch=False):
         """Creates an adgroup in the given ad camapaign with the given spec."""
         path = 'act_%s/adgroups' % account_id
         args = {
             'name': name,
-            'bid_type': bid_type,
             'bid_info': json.dumps(bid_info),
             'campaign_id': campaign_id,
             'creative': json.dumps({'creative_id': creative_id}),
-            'targeting': json.dumps(targeting),
         }
         if max_bid:
-            assert bid_type == 'CPM', 'can only use max_bid with CPM bidding'
+            # can only use max_bid with CPM bidding
             args['max_bid'] = max_bid
             del args['bid_info']  # get rid of bid_info
-        if conversion_specs:
-            args['conversion_specs'] = json.dumps(conversion_specs)
         if tracking_specs:
             args['tracking_specs'] = json.dumps(tracking_specs)
         if view_tags:
@@ -866,8 +862,7 @@ class AdsAPI(object):
         return self.make_request(path, 'POST', args, batch=batch)
 
     def update_adgroup(self, adgroup_id, name=None, adgroup_status=None,
-                       bid_type=None, bid_info=None, creative_id=None,
-                       targeting=None, conversion_specs=None,
+                       bid_info=None, creative_id=None,
                        tracking_specs=None, view_tags=None, objective=None,
                        batch=False):
         """Updates condition of the given ad group."""
@@ -875,16 +870,10 @@ class AdsAPI(object):
         args = {}
         if name:
             args['name'] = name
-        if bid_type:
-            args['bid_type'] = bid_type
         if bid_info:
             args['bid_info'] = json.dumps(bid_info)
         if creative_id:
             args['creative'] = json.dumps({'creative_id': creative_id})
-        if targeting:
-            args['targeting'] = json.dumps(targeting)
-        if conversion_specs:
-            args['conversion_specs'] = json.dumps(conversion_specs)
         if tracking_specs:
             args['tracking_specs'] = json.dumps(tracking_specs)
         if view_tags:
