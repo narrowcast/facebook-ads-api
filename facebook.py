@@ -81,7 +81,13 @@ class AdsAPIError(Exception):
             self.str = self.message
             self.error = {'message': self.message}
         else:
-            self.message = self.error.get('error', {}).get('message')
+            error_dict = self.error.get('error', {})
+            self.message = error_dict.get('message', '')
+            # New error details in api 2.2
+            if 'error_user_title' in error_dict:
+                self.message += ' - ' + error_dict['error_user_title']
+            if 'error_user_msg' in error_dict:
+                self.message += ' - ' + error_dict['error_user_msg']
             self.code = self.error.get('error', {}).get('code')
             self.type = self.error.get('error', {}).get('type')
             self.str = '(%s %s) %s' % (self.type, self.code, self.message)
