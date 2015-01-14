@@ -846,7 +846,7 @@ class AdsAPI(object):
     def create_adgroup(self, account_id, name, campaign_id,
                        creative_id, bid_info=None, max_bid=None,
                        tracking_specs=None, view_tags=None, objective=None,
-                       adgroup_status=None, batch=False):
+                       adgroup_status=None, targeting=None, conversion_specs=None, batch=False):
         """Creates an adgroup in the given ad camapaign with the given spec."""
         path = 'act_%s/adgroups' % account_id
         args = {
@@ -868,6 +868,10 @@ class AdsAPI(object):
             args['objective'] = objective
         if adgroup_status:
             args['adgroup_status'] = adgroup_status
+        if targeting:
+            args['targeting'] = json.dumps(targeting)
+        if conversion_specs:
+            args['conversion_specs'] = json.dumps(conversion_specs)
         return self.make_request(path, 'POST', args, batch=batch)
 
     def update_adgroup(self, adgroup_id, name=None, adgroup_status=None,
