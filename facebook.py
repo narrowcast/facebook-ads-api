@@ -844,9 +844,9 @@ class AdsAPI(object):
         return self.make_request(path, 'POST', args, batch=batch)
 
     def create_adgroup(self, account_id, name, campaign_id,
-                       creative_id, bid_info=None, max_bid=None,
+                       creative_id, bid_type=None, bid_info=None, max_bid=None,
                        tracking_specs=None, view_tags=None, objective=None,
-                       adgroup_status=None, batch=False):
+                       adgroup_status=None, targeting=None, conversion_specs=None, batch=False):
         """Creates an adgroup in the given ad camapaign with the given spec."""
         path = 'act_%s/adgroups' % account_id
         args = {
@@ -854,6 +854,8 @@ class AdsAPI(object):
             'campaign_id': campaign_id,
             'creative': json.dumps({'creative_id': creative_id}),
         }
+        if bid_type:
+            args['bid_type'] = bid_type
         if max_bid:
             # can only use max_bid with CPM bidding
             args['max_bid'] = max_bid
@@ -868,19 +870,27 @@ class AdsAPI(object):
             args['objective'] = objective
         if adgroup_status:
             args['adgroup_status'] = adgroup_status
+        if targeting:
+            args['targeting'] = json.dumps(targeting)
+        if conversion_specs:
+            args['conversion_specs'] = json.dumps(conversion_specs)
         return self.make_request(path, 'POST', args, batch=batch)
 
     def update_adgroup(self, adgroup_id, name=None, adgroup_status=None,
-                       bid_info=None, creative_id=None,
+                       bid_type=None, bid_info=None, creative_id=None,
                        tracking_specs=None, view_tags=None, objective=None,
+                       targeting=None, conversion_specs=None,
                        batch=False):
         """Updates condition of the given ad group."""
         path = "%s" % adgroup_id
         args = {}
         if name:
             args['name'] = name
+        if bid_type:
+            args['bid_type'] = bid_type
         if bid_info:
             args['bid_info'] = json.dumps(bid_info)
+
         if creative_id:
             args['creative'] = json.dumps({'creative_id': creative_id})
         if tracking_specs:
@@ -891,6 +901,10 @@ class AdsAPI(object):
             args['objective'] = objective
         if adgroup_status:
             args['adgroup_status'] = adgroup_status
+        if targeting:
+            args['targeting'] = json.dumps(targeting)
+        if conversion_specs:
+            args['conversion_specs'] = json.dumps(conversion_specs)
         return self.make_request(path, 'POST', args, batch=batch)
 
     def create_custom_audience(self, account_id, name, subtype=None,
