@@ -156,10 +156,10 @@ class AdsAPI(object):
             err = AdsAPIError(e)
             # Info, not warning or error, because these often happen as an expected result because of user input
             # and well formed requests that facebook rejects.
-            logger.info('API Error: {}'.format(err.message))
+            logger.info(u'API Error: {}'.format(err.message))
             raise err
         except urllib2.URLError as e:
-            logger.warn('URLError: %s' % e.reason)
+            logger.warn(u'URLError: %s' % e.reason)
             raise
 
     def make_batch_request(self, batch):
