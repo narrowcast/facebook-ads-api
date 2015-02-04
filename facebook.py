@@ -512,10 +512,11 @@ class AdsAPI(object):
         path = '%s/conversions' % adgroup_id
         return self.make_request(path, 'GET', batch=batch)
 
-    def get_custom_audiences(self, account_id, batch=False):
+    def get_custom_audiences(self, account_id, fields=None, batch=False):
         """Returns the information for a given audience."""
         path = 'act_%s/customaudiences' % account_id
-        return self.make_request(path, 'GET', batch=batch)
+        args = {'fields': fields} if fields else {}
+        return self.make_request(path, 'GET', args, batch=batch)
 
     def get_ads_pixels(self, account_id, fields=None, batch=False):
         """Returns the remarketing pixel."""
