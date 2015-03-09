@@ -94,11 +94,20 @@ class AdsAPI(object):
     """A client for the Facebook Ads API."""
     DATA_LIMIT = 100
 
-    def __init__(self, access_token, app_id='', app_secret=''):
-        # Most ad account operations can be done without an app id and secret, so allow creating without them.
+    def __init__(self, access_token, app_id='', app_secret='', version=None):
+        """
+        :param access_token: The API access token
+        :param app_id: An optional App id, current only used for debug_token.
+        :param app_secret: An optional App secret, currently only used for debug_token
+        :param version: Facebook API version, e.g. "2.2". It's currently optional but will be required soon.
+        """
         self.access_token = access_token
         self.app_id = app_id
         self.app_secret = app_secret
+        if version:
+            self.api_root = '{}/v{}'.format(FACEBOOK_API, version)
+        else:
+            self.api_root = FACEBOOK_API
 
     def make_request(self, path, method, args=None, files=None, batch=False, raw_path=False):
         """Makes a request against the Facebook Ads API endpoint."""
@@ -112,15 +121,15 @@ class AdsAPI(object):
                 'method': method,
                 'relative_url': '%s?%s' % (path, urllib.urlencode(args))
             }
-        logger.info('Making a %s request at %s with %s' % (method, path, args))
+        logger.info('Making a %s request at %s/%s with %s' % (method, self.api_root, path, args))
         if 'access_token' not in args:
             args['access_token'] = self.access_token
         try:
             if method == 'GET':
-                url = path if raw_path else '%s/%s?%s' % (FACEBOOK_API, path, urllib.urlencode(args))
+                url = path if raw_path else '%s/%s?%s' % (self.api_root, path, urllib.urlencode(args))
                 f = urllib2.urlopen(url)
             elif method == 'POST':
-                url = path if raw_path else '%s/%s' % (FACEBOOK_API, path)
+                url = path if raw_path else '%s/%s' % (self.api_root, path)
                 if files:
                     encoder = MultipartFormdataEncoder()
                     content_type, body = encoder.encode(args, files)
@@ -130,7 +139,7 @@ class AdsAPI(object):
                 else:
                     f = urllib2.urlopen(url, urllib.urlencode(args))
             elif method == 'DELETE':
-                url = path if raw_path else '%s/%s?%s' % (FACEBOOK_API, path, urllib.urlencode(args))
+                url = path if raw_path else '%s/%s?%s' % (self.api_root, path, urllib.urlencode(args))
                 req = urllib2.Request(url)
                 req.get_method = lambda: 'DELETE'
                 f = urllib2.urlopen(req)
@@ -138,10 +147,13 @@ class AdsAPI(object):
                 raise
             return json.load(f)
         except urllib2.HTTPError as e:
-            print '%s' % e
-            raise AdsAPIError(e)
+            err = AdsAPIError(e)
+            # Info, not warning or error, because these often happen as an expected result because of user input
+            # and well formed requests that facebook rejects.
+            logger.info('API Error: {}'.format(err.message))
+            raise err
         except urllib2.URLError as e:
-            print 'URLError: %s' % e.reason
+            logger.warn('URLError: %s' % e.reason)
             raise
 
     def make_batch_request(self, batch):
@@ -153,7 +165,7 @@ class AdsAPI(object):
                 for k, v in args.items()}
         logger.info('Making a batched request with %s' % args)
         try:
-            f = urllib2.urlopen(FACEBOOK_API, urllib.urlencode(args))
+            f = urllib2.urlopen(self.api_root, urllib.urlencode(args))
             data = json.load(f)
             # For debugging
             self.data = data
@@ -161,10 +173,10 @@ class AdsAPI(object):
                 data[idx] = json.loads(val['body'])
             return data
         except urllib2.HTTPError as e:
-            print '%s' % e
+            logger.info('%s' % e)
             return json.load(e)
         except urllib2.URLError as e:
-            print 'URLError: %s' % e.reason
+            logger.warn('URLError: %s' % e.reason)
 
     # New API
     def make_labeled_batch_request(self, batch):
@@ -711,7 +723,6 @@ class AdsAPI(object):
             args['scheduled_publish_time'] = scheduled_publish_time
         return self.make_request(path, 'POST', args, files, batch=batch)
 
-    # New API
     def create_adcampaign_group(self, account_id, name, campaign_group_status,
                                 objective=None, batch=False):
         """Creates an ad campaign group for the given account."""
@@ -724,7 +735,6 @@ class AdsAPI(object):
             args['objective'] = objective
         return self.make_request(path, 'POST', args, batch=batch)
 
-    # New API
     def update_adcampaign_group(self, campaign_group_id, name=None,
                                 campaign_group_status=None, objective=None,
                                 batch=False):
@@ -739,19 +749,20 @@ class AdsAPI(object):
             args['objective'] = objective
         return self.make_request(path, 'POST', args, batch=batch)
 
-    # New API: Need to change 'create_adcampaign' when facebook api is set new api.
-    def _create_adcampaign(self, account_id, campaign_group_id, name,
-                           campaign_status,
-                           daily_budget=None, lifetime_budget=None,
-                           start_time=None, end_time=None, batch=False):
-        """Creates an ad campaign for the given account and
-           the given campaign group."""
+    def create_adset(self, account_id, campaign_group_id, name,
+                     campaign_status, daily_budget=None, lifetime_budget=None,
+                     start_time=None, end_time=None,
+                     bid_type=None, bid_info=None, promoted_object=None, targeting=None, batch=False):
+        """
+        Creates an adset (formerly called ad campaign) for the given account and the campaign (formerly called "campaign group").
+        """
         if daily_budget is None and lifetime_budget is None:
             raise AdsAPIError("Either a lifetime_budget or a daily_budget \
                                 must be set when creating a campaign")
         if lifetime_budget is not None and end_time is None:
             raise AdsAPIError("end_time is required when lifetime_budget \
                                 is specified")
+
         path = 'act_%s/adcampaigns' % account_id
         args = {
             'campaign_group_id': campaign_group_id,
@@ -766,54 +777,22 @@ class AdsAPI(object):
             args['start_time'] = start_time
         if end_time:
             args['end_time'] = end_time
+        if bid_type:
+            args['bid_type'] = bid_type
+        if bid_info:
+            args['bid_info'] = bid_info
+        if promoted_object:
+            args['promoted_object'] = json.dumps(promoted_object)
+        if targeting:
+            args['targeting'] = json.dumps(targeting)
+
         return self.make_request(path, 'POST', args, batch=batch)
 
-    def create_adset(self, account_id, campaign_group_id, name,
-                     campaign_status, daily_budget=None, lifetime_budget=None,
-                     start_time=None, end_time=None, batch=False):
-        """
-        Creates an ad campaign for the given account and the campaign group.
-        Functionality of this method is same as _create_adcampaign method.
-        """
-        return self._create_adcampaign(
-            account_id, campaign_group_id, name, campaign_status,
-            daily_budget, lifetime_budget, start_time, end_time, batch)
-
-    # Deprecated: this method will be update.
-    def create_adcampaign(self, account_id, name, campaign_status,
+    def update_adset(self, campaign_id, name=None, campaign_status=None,
                           daily_budget=None, lifetime_budget=None,
-                          start_time=None, end_time=None, batch=False):
-        """
-        Creates an ad campaign for the given account.
-        Deprecated: This method cannot work on new campaign structure.
-        """
-        logger.warn("This method is deprecated.")
-        if daily_budget is None and lifetime_budget is None:
-            raise AdsAPIError("Either a lifetime_budget or a daily_budget \
-                                 must be set when creating a campaign")
-        if lifetime_budget is not None and end_time is None:
-            raise AdsAPIError("end_time is required when lifetime_budget \
-                                is specified")
-        path = 'act_%s/adcampaigns' % account_id
-        args = {
-            'name': name,
-            'campaign_status': campaign_status,
-        }
-        if daily_budget:
-            args['daily_budget'] = daily_budget
-        if lifetime_budget:
-            args['lifetime_budget'] = lifetime_budget
-        if start_time:
-            args['start_time'] = start_time
-        if end_time:
-            args['end_time'] = end_time
-        return self.make_request(path, 'POST', args, batch=batch)
-
-    # New API
-    def update_adcampaign(self, campaign_id, name=None, campaign_status=None,
-                          daily_budget=None, lifetime_budget=None,
-                          start_time=None, end_time=None, batch=False):
-        """Updates condition of the given ad campaign."""
+                          start_time=None, end_time=None,
+                          bid_type=None, bid_info=None, promoted_object=None, targeting=None, batch=False):
+        """Updates the given adset."""
         path = '%s' % campaign_id
         args = {}
         if name:
@@ -828,6 +807,15 @@ class AdsAPI(object):
             args['start_time'] = start_time
         if end_time:
             args['end_time'] = end_time
+        if bid_type:
+            args['bid_type'] = bid_type
+        if bid_info:
+            args['bid_info'] = bid_info
+        if promoted_object:
+            args['promoted_object'] = json.dumps(promoted_object)
+        if targeting:
+            args['targeting'] = json.dumps(targeting)
+
         return self.make_request(path, 'POST', args, batch=batch)
 
     # New API
@@ -836,9 +824,7 @@ class AdsAPI(object):
         path = '%s' % campaign_id
         return self.make_request(path, 'DELETE', batch=batch)
 
-        logger.warn("This method is deprecated and is replaced with get_ads_pixels.")
-
-    def create_adcreative(self, account_id, name=None, object_story_id=None, object_story_spec=None, batch=False):
+    def create_adcreative(self, account_id, object_story_id=None, batch=False):
         """Creates an ad creative in the given ad account."""
         path = 'act_%s/adcreatives' % account_id
         args = {}
@@ -851,26 +837,23 @@ class AdsAPI(object):
 
         return self.make_request(path, 'POST', args, batch=batch)
 
-    def create_adgroup(self, account_id, name, bid_type, bid_info, campaign_id,
-                       creative_id, targeting, max_bid=None, conversion_specs=None,
+    def create_adgroup(self, account_id, name, campaign_id,
+                       creative_id, bid_info=None, max_bid=None,
                        tracking_specs=None, view_tags=None, objective=None,
                        adgroup_status=None, batch=False):
         """Creates an adgroup in the given ad camapaign with the given spec."""
         path = 'act_%s/adgroups' % account_id
         args = {
             'name': name,
-            'bid_type': bid_type,
-            'bid_info': json.dumps(bid_info),
             'campaign_id': campaign_id,
             'creative': json.dumps({'creative_id': creative_id}),
-            'targeting': json.dumps(targeting),
         }
         if max_bid:
-            assert bid_type == 'CPM', 'can only use max_bid with CPM bidding'
+            # can only use max_bid with CPM bidding
             args['max_bid'] = max_bid
-            del args['bid_info']  # get rid of bid_info
-        if conversion_specs:
-            args['conversion_specs'] = json.dumps(conversion_specs)
+        elif bid_info:
+            args['bid_info'] = json.dumps(bid_info)
+
         if tracking_specs:
             args['tracking_specs'] = json.dumps(tracking_specs)
         if view_tags:
@@ -882,8 +865,7 @@ class AdsAPI(object):
         return self.make_request(path, 'POST', args, batch=batch)
 
     def update_adgroup(self, adgroup_id, name=None, adgroup_status=None,
-                       bid_type=None, bid_info=None, creative_id=None,
-                       targeting=None, conversion_specs=None,
+                       bid_info=None, creative_id=None,
                        tracking_specs=None, view_tags=None, objective=None,
                        batch=False):
         """Updates condition of the given ad group."""
@@ -891,16 +873,10 @@ class AdsAPI(object):
         args = {}
         if name:
             args['name'] = name
-        if bid_type:
-            args['bid_type'] = bid_type
         if bid_info:
             args['bid_info'] = json.dumps(bid_info)
         if creative_id:
             args['creative'] = json.dumps({'creative_id': creative_id})
-        if targeting:
-            args['targeting'] = json.dumps(targeting)
-        if conversion_specs:
-            args['conversion_specs'] = json.dumps(conversion_specs)
         if tracking_specs:
             args['tracking_specs'] = json.dumps(tracking_specs)
         if view_tags:
@@ -932,17 +908,21 @@ class AdsAPI(object):
         return self.make_request(path, 'POST', args, batch=batch)
 
     def add_users_to_custom_audience(self, custom_audience_id, tracking_ids,
-                                     schema='MOBILE_ADVERTISER_ID', batch=False):
+                                     schema='MOBILE_ADVERTISER_ID', app_ids=None, batch=False):
         """
         Adds users to a Custom Audience, based on a list of unique user
         tracking ids. There is a limit imposed by Facebook that only 10000
         users may be uploaded at a time.
         @param schema Allowed values are "UID", "EMAIL_SHA256", "PHONE_SHA256",
             "MOBILE_ADVERTISER_ID"
+        @param app_ids List of app ids. This is required for schema type UID, as of API v2.2
         """
         path = "%s/users" % custom_audience_id
+        payload = {'schema': schema, 'data': tracking_ids}
+        if app_ids:
+            payload['app_ids'] = app_ids
         args = {
-            'payload': json.dumps({'schema': schema, 'data': tracking_ids})
+            'payload': json.dumps(payload)
         }
         return self.make_request(path, 'POST', args, batch)
 
