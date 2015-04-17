@@ -812,7 +812,7 @@ class AdsAPI(object):
             args['lifetime_budget'] = lifetime_budget
         if start_time:
             args['start_time'] = start_time
-        if end_time:
+        if end_time is not None:
             args['end_time'] = end_time
         if bid_type:
             args['bid_type'] = bid_type
