@@ -214,11 +214,14 @@ class AdsAPI(object):
         args = {'fields': fields} if fields else {}
         return self.make_request(path, 'GET', args, batch=batch)
 
-    def get_adaccounts(self, user_id, fields, batch=False):
+    def get_adaccounts(self, user_id, fields,
+                       paging_cursors={}, batch=False):
         """Returns the list of Facebook ad accounts."""
         path = '%s/adaccounts' % user_id
         args = {'fields': fields}
-        return iterate_by_page(self.make_request(path, 'GET', args, batch=batch))
+        if paging_cursors:
+            args.update(paging_cursors)
+        return self.make_request(path, 'GET', args, batch=batch)
 
     # New API
     def get_adcampaign_group(self, campaign_group_id, fields, batch=False):
