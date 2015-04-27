@@ -218,7 +218,7 @@ class AdsAPI(object):
         """Returns the list of Facebook ad accounts."""
         path = '%s/adaccounts' % user_id
         args = {'fields': fields}
-        return self.make_request(path, 'GET', args, batch=batch)
+        return iterate_by_page(self.make_request(path, 'GET', args, batch=batch))
 
     # New API
     def get_adcampaign_group(self, campaign_group_id, fields, batch=False):
