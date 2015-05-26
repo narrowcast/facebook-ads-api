@@ -98,7 +98,7 @@ class AdsAPIError(Exception):
 
 class AdsAPI(object):
     """A client for the Facebook Ads API."""
-    DATA_LIMIT = 100
+    DATA_LIMIT = 1000
 
     def __init__(self, access_token, app_id='', app_secret='', version=None):
         """
@@ -518,7 +518,8 @@ class AdsAPI(object):
     def get_custom_audiences(self, account_id, fields=None, batch=False):
         """Returns the information for a given audience."""
         path = 'act_%s/customaudiences' % account_id
-        args = {'fields': fields} if fields else {}
+        args = { 'limit': self.DATA_LIMIT }
+        if fields: args['fields'] = fields
         return self.make_request(path, 'GET', args, batch=batch)
 
     def get_ads_pixels(self, account_id, fields=None, batch=False):
