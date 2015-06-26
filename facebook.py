@@ -81,7 +81,13 @@ class AdsAPIError(Exception):
             self.str = self.message
             self.error = {'message': self.message}
         else:
-            self.message = self.error.get('error', {}).get('message')
+            error_dict = self.error.get('error', {})
+            self.message = error_dict.get('message', '')
+            # New error details in api 2.2
+            if 'error_user_title' in error_dict:
+                self.message += ' - ' + error_dict['error_user_title']
+            if 'error_user_msg' in error_dict:
+                self.message += ' - ' + error_dict['error_user_msg']
             self.code = self.error.get('error', {}).get('code')
             self.type = self.error.get('error', {}).get('type')
             self.str = '(%s %s) %s' % (self.type, self.code, self.message)
@@ -92,7 +98,7 @@ class AdsAPIError(Exception):
 
 class AdsAPI(object):
     """A client for the Facebook Ads API."""
-    DATA_LIMIT = 100
+    DATA_LIMIT = 1000
 
     def __init__(self, access_token, app_id='', app_secret='', version=None):
         """
@@ -150,10 +156,10 @@ class AdsAPI(object):
             err = AdsAPIError(e)
             # Info, not warning or error, because these often happen as an expected result because of user input
             # and well formed requests that facebook rejects.
-            logger.info('API Error: {}'.format(err.message))
+            logger.info(u'API Error: {}'.format(err.message))
             raise err
         except urllib2.URLError as e:
-            logger.warn('URLError: %s' % e.reason)
+            logger.warn(u'URLError: %s' % e.reason)
             raise
 
     def make_batch_request(self, batch):
@@ -509,10 +515,12 @@ class AdsAPI(object):
         path = '%s/conversions' % adgroup_id
         return self.make_request(path, 'GET', batch=batch)
 
-    def get_custom_audiences(self, account_id, batch=False):
+    def get_custom_audiences(self, account_id, fields=None, batch=False):
         """Returns the information for a given audience."""
         path = 'act_%s/customaudiences' % account_id
-        return self.make_request(path, 'GET', batch=batch)
+        args = { 'limit': self.DATA_LIMIT }
+        if fields: args['fields'] = fields
+        return self.make_request(path, 'GET', args, batch=batch)
 
     def get_ads_pixels(self, account_id, fields=None, batch=False):
         """Returns the remarketing pixel."""
@@ -808,7 +816,7 @@ class AdsAPI(object):
             args['lifetime_budget'] = lifetime_budget
         if start_time:
             args['start_time'] = start_time
-        if end_time:
+        if end_time is not None:
             args['end_time'] = end_time
         if bid_type:
             args['bid_type'] = bid_type
@@ -827,7 +835,7 @@ class AdsAPI(object):
         path = '%s' % campaign_id
         return self.make_request(path, 'DELETE', batch=batch)
 
-    def create_adcreative(self, account_id, object_story_id=None, batch=False):
+    def create_adcreative(self, account_id, name=None, object_story_id=None, object_story_spec=None, batch=False):
         """Creates an ad creative in the given ad account."""
         path = 'act_%s/adcreatives' % account_id
         args = {}
@@ -841,9 +849,9 @@ class AdsAPI(object):
         return self.make_request(path, 'POST', args, batch=batch)
 
     def create_adgroup(self, account_id, name, campaign_id,
-                       creative_id, bid_info=None, max_bid=None,
+                       creative_id, bid_type=None, bid_info=None, max_bid=None,
                        tracking_specs=None, view_tags=None, objective=None,
-                       adgroup_status=None, batch=False):
+                       adgroup_status=None, targeting=None, conversion_specs=None, batch=False):
         """Creates an adgroup in the given ad camapaign with the given spec."""
         path = 'act_%s/adgroups' % account_id
         args = {
@@ -851,6 +859,8 @@ class AdsAPI(object):
             'campaign_id': campaign_id,
             'creative': json.dumps({'creative_id': creative_id}),
         }
+        if bid_type:
+            args['bid_type'] = bid_type
         if max_bid:
             # can only use max_bid with CPM bidding
             args['max_bid'] = max_bid
@@ -865,19 +875,27 @@ class AdsAPI(object):
             args['objective'] = objective
         if adgroup_status:
             args['adgroup_status'] = adgroup_status
+        if targeting:
+            args['targeting'] = json.dumps(targeting)
+        if conversion_specs:
+            args['conversion_specs'] = json.dumps(conversion_specs)
         return self.make_request(path, 'POST', args, batch=batch)
 
     def update_adgroup(self, adgroup_id, name=None, adgroup_status=None,
-                       bid_info=None, creative_id=None,
+                       bid_type=None, bid_info=None, creative_id=None,
                        tracking_specs=None, view_tags=None, objective=None,
+                       targeting=None, conversion_specs=None,
                        batch=False):
         """Updates condition of the given ad group."""
         path = "%s" % adgroup_id
         args = {}
         if name:
             args['name'] = name
+        if bid_type:
+            args['bid_type'] = bid_type
         if bid_info:
             args['bid_info'] = json.dumps(bid_info)
+
         if creative_id:
             args['creative'] = json.dumps({'creative_id': creative_id})
         if tracking_specs:
@@ -888,6 +906,10 @@ class AdsAPI(object):
             args['objective'] = objective
         if adgroup_status:
             args['adgroup_status'] = adgroup_status
+        if targeting:
+            args['targeting'] = json.dumps(targeting)
+        if conversion_specs:
+            args['conversion_specs'] = json.dumps(conversion_specs)
         return self.make_request(path, 'POST', args, batch=batch)
 
     def create_custom_audience(self, account_id, name, subtype=None,
