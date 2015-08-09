@@ -229,6 +229,16 @@ class AdsAPI(object):
             args.update(paging_cursors)
         return self.make_request(path, 'GET', args, batch=batch)
 
+    def get_adaccount_transactions(
+            self, account_id, paging_cursors={}, batch=False):
+        """Returns the transactions of the given ad account."""
+        path = 'act_%s/transactions' % account_id
+        args = {}
+        if paging_cursors:
+            args.update(paging_cursors)
+        return self.make_request(path, 'GET', args, batch=batch)
+
+
     # New API
     def get_adcampaign_group(self, campaign_group_id, fields, batch=False):
         """Return the fields for the given ad campaign group."""
@@ -577,6 +587,8 @@ class AdsAPI(object):
         args = {'targeting_spec': json.dumps(targeting_spec)}
 
         return self.make_request(path, 'GET', args, batch=batch)
+
+
 
     def get_adcampaign_list(self, account_id):
         """Returns the list of ad campaigns and related data."""
