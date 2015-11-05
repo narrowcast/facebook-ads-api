@@ -427,7 +427,7 @@ class AdsAPI(object):
                             time_increment=None, actions_group_by=None,
                             filters=None, async=False, batch=False, offset=None,
                             sort_by=None, sort_dir=None, summary=None,
-                            limit=None):
+                            limit=None, action_attribution_windows=None):
         """Returns the ad report stats for the given account."""
         if date_preset is None and date_start is None and date_end is None:
             raise AdsAPIError("Either a date_preset or a date_start/end \
@@ -457,6 +457,8 @@ class AdsAPI(object):
             args['summary'] = summary
         if limit:
             args['limit'] = limit
+        if action_attribution_windows:
+            args['action_attribution_windows'] = json.dumps(action_attribution_windows)
         if async:
             args['async'] = 'true'
             return self.make_request(path, 'POST', args=args, batch=batch)
