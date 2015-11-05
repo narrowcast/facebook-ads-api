@@ -362,7 +362,6 @@ class AdsAPI(object):
             path = path + '/{0}'.format(self.__parse_time(end_time))
         return iterate_by_page(self.make_request(path, 'GET', args, batch=batch))
 
-    # Deprecated for v2.4+, /insights/ endpoint instead
     def get_stats_by_adcampaign(self, account_id, campaign_ids=None,
                                 batch=False, start_time=None, end_time=None):
         """Returns the stats for a Facebook campaign by adcampaign."""
@@ -373,7 +372,7 @@ class AdsAPI(object):
             args['start_time'] = self.__parse_time(start_time)
         if end_time:
             args['end_time'] = self.__parse_time(end_time)
-        path = 'act_%s/adcampaignstats' % account_id
+        path = 'act_%s/adsets' % account_id
         return self.make_request(path, 'GET', args, batch=batch)
 
     def get_stats_by_adgroup(
@@ -431,7 +430,7 @@ class AdsAPI(object):
         if date_preset is None and date_start is None and date_end is None:
             raise AdsAPIError("Either a date_preset or a date_start/end \
                                 must be set when requesting a stats info.")
-        path = 'act_%s/reportstats' % account_id
+        path = 'act_%s/insights' % account_id
         args = {
             'data_columns': json.dumps(data_columns),
         }
