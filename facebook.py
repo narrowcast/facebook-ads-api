@@ -362,10 +362,12 @@ class AdsAPI(object):
             path = path + '/{0}'.format(self.__parse_time(end_time))
         return iterate_by_page(self.make_request(path, 'GET', args, batch=batch))
 
-    def get_stats_by_adcampaign(self, account_id, campaign_ids=None,
+    def get_stats_by_adcampaign(self, account_id, campaign_ids=None, fields=None,
                                 batch=False, start_time=None, end_time=None):
         """Returns the stats for a Facebook campaign by adcampaign."""
         args = {}
+        if fields:
+            args['fields'] = json.dumps(fields)
         if campaign_ids is not None:
             args['campaign_ids'] = json.dumps(campaign_ids)
         if start_time:
