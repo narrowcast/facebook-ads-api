@@ -471,6 +471,7 @@ class AdsAPI(object):
                      level=None, date_preset=None, date_start=None,
                      date_end=None, time_increment=None, breakdowns=None,
                      filtering=None, sort=None, limit=None,
+                     action_attribution_windows=None,
                      async=False, batch=False):
         """Returns the insights information for the given object."""
         if date_preset is None and date_start is None and date_end is None:
@@ -482,6 +483,8 @@ class AdsAPI(object):
             args['fields'] = fields
         if action_breakdowns:
             args['action_breakdowns'] = json.dumps(action_breakdowns)
+        if action_attribution_windows:
+            args['action_attribution_windows'] = json.dumps(action_attribution_windows)
         if level:
             args['level'] = level
         if date_preset:
@@ -495,10 +498,10 @@ class AdsAPI(object):
             args['breakdowns'] = json.dumps(breakdowns)
         if filtering:
             args['filtering'] = json.dumps(filtering)
-        if limit:
-            args['limit'] = limit
         if sort:
             args['sort'] = sort
+        if limit:
+            args['limit'] = limit
         if async:
             args['async'] = 'true'
             return self.make_request(path, 'POST', args=args, batch=batch)
