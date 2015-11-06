@@ -467,6 +467,43 @@ class AdsAPI(object):
             return self.make_request(path, 'POST', args=args, batch=batch)
         return self.make_request(path, 'GET', args=args, batch=batch)
 
+    def get_insights(self, object_id, fields=None, action_breakdowns=None,
+                     level=None, date_preset=None, date_start=None,
+                     date_end=None, time_increment=None, breakdowns=None,
+                     filtering=None, sort=None, limit=None,
+                     async=False, batch=False):
+        """Returns the insights information for the given object."""
+        if date_preset is None and date_start is None and date_end is None:
+            raise AdsAPIError("Either a date_preset or a date_start/end \
+                                must be set when requesting a stats info.")
+        path = '%s/insights' % object_id
+        args = {}
+        if fields:
+            args['fields'] = fields
+        if action_breakdowns:
+            args['action_breakdowns'] = json.dumps(action_breakdowns)
+        if level:
+            args['level'] = level
+        if date_preset:
+            args['date_preset'] = date_preset
+        if date_start and date_end:
+            args['time_interval'] = \
+                self.get_time_interval(date_start, date_end)
+        if time_increment:
+            args['time_increment'] = time_increment
+        if breakdowns:
+            args['breakdowns'] = json.dumps(breakdowns)
+        if filtering:
+            args['filtering'] = json.dumps(filtering)
+        if limit:
+            args['limit'] = limit
+        if sort:
+            args['sort'] = sort
+        if async:
+            args['async'] = 'true'
+            return self.make_request(path, 'POST', args=args, batch=batch)
+        return self.make_request(path, 'GET', args=args, batch=batch)
+
     def get_async_job_status(self, job_id, batch=False):
         """Returns the asynchronously requested job status"""
         path = '%s' % job_id
