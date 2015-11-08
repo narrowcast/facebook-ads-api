@@ -530,6 +530,11 @@ class AdsAPI(object):
         }
         return self.make_request(path, 'GET', args=args, batch=batch)
 
+    def get_async_job_result2(self, job_id, batch=False):
+        """Returns completed result of the given async job"""
+        path = '%s/insights' % job_id
+        return self.make_request(path, 'GET', batch=batch)
+
     def get_conversion_stats_by_adaccount(self, account_id, batch=False):
         """Returns the aggregated conversion stats for the given ad account."""
         path = 'act_%s/conversions' % account_id
@@ -634,8 +639,6 @@ class AdsAPI(object):
         args = {'targeting_spec': json.dumps(targeting_spec)}
 
         return self.make_request(path, 'GET', args, batch=batch)
-
-
 
     def get_adcampaign_list(self, account_id):
         """Returns the list of ad campaigns and related data."""
