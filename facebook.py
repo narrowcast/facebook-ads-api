@@ -507,6 +507,16 @@ class AdsAPI(object):
             return self.make_request(path, 'POST', args=args, batch=batch)
         return self.make_request(path, 'GET', args=args, batch=batch)
 
+    def get_targetingsentencelines(self, object_id, batch=False):
+        """Returns targeting information for the given object."""
+        path = '%s/targetingsentencelines' % object_id
+        return self.make_request(path, 'GET', batch=batch)
+
+    def get_reachestimate(self, object_id, batch=False):
+        """Returns reach estimation for the given object."""
+        path = '%s/reachestimate' % object_id
+        return self.make_request(path, 'GET', batch=batch)
+
     def get_async_job_status(self, job_id, batch=False):
         """Returns the asynchronously requested job status"""
         path = '%s' % job_id
