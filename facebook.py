@@ -406,6 +406,7 @@ class AdsAPI(object):
         )
         return json.dumps(time_interval)
 
+    # Deprecated
     def get_adreport_stats(self, account_id, date_preset, time_increment,
                            data_columns, filters=None, actions_group_by=None,
                            batch=False):
@@ -422,18 +423,18 @@ class AdsAPI(object):
             args['actions_group_by'] = actions_group_by
         return self.make_request(path, 'GET', args, batch=batch)
 
+    # Deprecated
     def get_adreport_stats2(self, account_id, data_columns, date_preset=None,
                             date_start=None, date_end=None,
                             time_increment=None, actions_group_by=None,
                             filters=None, async=False, batch=False, offset=None,
                             sort_by=None, sort_dir=None, summary=None,
-                            limit=None, action_attribution_windows=None,
-                            breakdowns=None):
+                            limit=None):
         """Returns the ad report stats for the given account."""
         if date_preset is None and date_start is None and date_end is None:
             raise AdsAPIError("Either a date_preset or a date_start/end \
                                 must be set when requesting a stats info.")
-        path = 'act_%s/insights' % account_id
+        path = 'act_%s/reportstats' % account_id
         args = {
             'data_columns': json.dumps(data_columns),
         }
@@ -458,10 +459,6 @@ class AdsAPI(object):
             args['summary'] = summary
         if limit:
             args['limit'] = limit
-        if action_attribution_windows:
-            args['action_attribution_windows'] = json.dumps(action_attribution_windows)
-        if breakdowns:
-            args['breakdowns'] = json.dumps(breakdowns)
         if async:
             args['async'] = 'true'
             return self.make_request(path, 'POST', args=args, batch=batch)
