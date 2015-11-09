@@ -416,8 +416,8 @@ class AdsAPI(object):
         if not isinstance(end, datetime.datetime):
             end = datetime.datetime(end)
         time_interval = dict(
-            since=dict(day=start.day, month=start.month, year=start.year),
-            until=dict(day=end.day, month=end.month, year=end.year)
+            since=start.strftime("%Y-%m-%d"),
+            until=end.strftime("%Y-%m-%d")
         )
         return json.dumps(time_interval)
 
