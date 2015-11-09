@@ -406,6 +406,21 @@ class AdsAPI(object):
         )
         return json.dumps(time_interval)
 
+    def get_time_range(self, start, end):
+        """Returns formatted time range."""
+        if not start or not end:
+            return None
+        end = end + datetime.timedelta(1)
+        if not isinstance(start, datetime.datetime):
+            start = datetime.datetime(start)
+        if not isinstance(end, datetime.datetime):
+            end = datetime.datetime(end)
+        time_interval = dict(
+            since=dict(day=start.day, month=start.month, year=start.year),
+            until=dict(day=end.day, month=end.month, year=end.year)
+        )
+        return json.dumps(time_interval)
+
     # Deprecated
     def get_adreport_stats(self, account_id, date_preset, time_increment,
                            data_columns, filters=None, actions_group_by=None,
