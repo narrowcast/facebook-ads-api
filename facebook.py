@@ -184,7 +184,6 @@ class AdsAPI(object):
         except urllib2.URLError as e:
             logger.warn('URLError: %s' % e.reason)
 
-    # New API
     def make_labeled_batch_request(self, batch):
         """Makes a batched request with label against the Facebook Ads API."""
         try:
@@ -229,25 +228,32 @@ class AdsAPI(object):
             args.update(paging_cursors)
         return self.make_request(path, 'GET', args, batch=batch)
 
-    # New API
+    def get_adaccount_transactions(
+            self, account_id, paging_cursors={}, batch=False):
+        """Returns the transactions of the given ad account."""
+        path = 'act_%s/transactions' % account_id
+        args = {}
+        if paging_cursors:
+            args.update(paging_cursors)
+        return self.make_request(path, 'GET', args, batch=batch)
+
+
     def get_adcampaign_group(self, campaign_group_id, fields, batch=False):
         """Return the fields for the given ad campaign group."""
         path = '%s' % campaign_group_id
         args = {'fields': fields}
         return self.make_request(path, 'GET', args, batch=batch)
 
-    # New API
     def get_adcampaign_groups(self, account_id, fields, batch=False):
         """Returns the fields of all ad campaign groups
            from the given ad account."""
-        path = 'act_%s/adcampaign_groups' % account_id
+        path = 'act_%s/campaigns' % account_id
         args = {
             'fields': fields,
             'limit': self.DATA_LIMIT
         }
         return self.make_request(path, 'GET', args, batch=batch)
 
-    # New API
     def delete_adcampaign_group(self, campaign_group_id, batch=False):
         """Delete specific campaign group."""
         path = '%s' % campaign_group_id
@@ -259,19 +265,18 @@ class AdsAPI(object):
         args = {'fields': fields}
         return self.make_request(path, 'GET', args, batch=batch)
 
-    # New API
+    # Deprecated
     def get_adcampaigns_of_campaign_group(self, campaign_group_id, fields,
                                           batch=False):
         """Return the fields of all adcampaigns
            from the given adcampaign group."""
-        path = '%s/adcampaigns' % campaign_group_id
+        path = '%s/adsets' % campaign_group_id
         args = {'fields': fields}
         return self.make_request(path, 'GET', args, batch=batch)
 
-    # New API
     def get_adcampaigns_of_account(self, account_id, fields, batch=False):
         """Returns the fields of all ad sets from the given ad account."""
-        path = 'act_%s/adcampaigns' % account_id
+        path = 'act_%s/adsets' % account_id
         args = {
             'fields': fields,
             'limit': self.DATA_LIMIT
@@ -332,7 +337,6 @@ class AdsAPI(object):
             args = {'hashes': hashes}
         return self.make_request(path, 'GET', args, batch=batch)
 
-    # New API
     def get_stats_by_adcampaign_group(
             self, campaign_group_id, fields=None, filters=None, batch=False,
             start_time=None, end_time=None):
@@ -358,17 +362,19 @@ class AdsAPI(object):
             path = path + '/{0}'.format(self.__parse_time(end_time))
         return iterate_by_page(self.make_request(path, 'GET', args, batch=batch))
 
-    def get_stats_by_adcampaign(self, account_id, campaign_ids=None,
+    def get_stats_by_adcampaign(self, account_id, campaign_ids=None, fields=None,
                                 batch=False, start_time=None, end_time=None):
         """Returns the stats for a Facebook campaign by adcampaign."""
         args = {}
+        if fields:
+            args['fields'] = json.dumps(fields)
         if campaign_ids is not None:
             args['campaign_ids'] = json.dumps(campaign_ids)
         if start_time:
             args['start_time'] = self.__parse_time(start_time)
         if end_time:
             args['end_time'] = self.__parse_time(end_time)
-        path = 'act_%s/adcampaignstats' % account_id
+        path = 'act_%s/adsets' % account_id
         return self.make_request(path, 'GET', args, batch=batch)
 
     def get_stats_by_adgroup(
@@ -385,7 +391,6 @@ class AdsAPI(object):
         path = 'act_%s/adgroupstats' % account_id
         return self.make_request(path, 'GET', args, batch=batch)
 
-    # New API
     def get_time_interval(self, start, end):
         """Returns formatted time interval."""
         if not start or not end:
@@ -401,6 +406,7 @@ class AdsAPI(object):
         )
         return json.dumps(time_interval)
 
+    # Deprecated
     def get_adreport_stats(self, account_id, date_preset, time_increment,
                            data_columns, filters=None, actions_group_by=None,
                            batch=False):
@@ -417,7 +423,7 @@ class AdsAPI(object):
             args['actions_group_by'] = actions_group_by
         return self.make_request(path, 'GET', args, batch=batch)
 
-    # New API
+    # Deprecated
     def get_adreport_stats2(self, account_id, data_columns, date_preset=None,
                             date_start=None, date_end=None,
                             time_increment=None, actions_group_by=None,
@@ -458,13 +464,61 @@ class AdsAPI(object):
             return self.make_request(path, 'POST', args=args, batch=batch)
         return self.make_request(path, 'GET', args=args, batch=batch)
 
-    # New API
+    def get_insights(self, object_id, fields=None, action_breakdowns=None,
+                     level=None, date_preset=None, date_start=None,
+                     date_end=None, time_increment=None, breakdowns=None,
+                     filtering=None, sort=None, limit=None,
+                     action_attribution_windows=None,
+                     async=False, batch=False):
+        """Returns the insights information for the given object."""
+        if date_preset is None and date_start is None and date_end is None:
+            raise AdsAPIError("Either a date_preset or a date_start/end \
+                                must be set when requesting a stats info.")
+        path = '%s/insights' % object_id
+        args = {}
+        if fields:
+            args['fields'] = fields
+        if action_breakdowns:
+            args['action_breakdowns'] = json.dumps(action_breakdowns)
+        if action_attribution_windows:
+            args['action_attribution_windows'] = json.dumps(action_attribution_windows)
+        if level:
+            args['level'] = level
+        if date_preset:
+            args['date_preset'] = date_preset
+        if date_start and date_end:
+            args['time_interval'] = \
+                self.get_time_interval(date_start, date_end)
+        if time_increment:
+            args['time_increment'] = time_increment
+        if breakdowns:
+            args['breakdowns'] = json.dumps(breakdowns)
+        if filtering:
+            args['filtering'] = json.dumps(filtering)
+        if sort:
+            args['sort'] = sort
+        if limit:
+            args['limit'] = limit
+        if async:
+            args['async'] = 'true'
+            return self.make_request(path, 'POST', args=args, batch=batch)
+        return self.make_request(path, 'GET', args=args, batch=batch)
+
+    def get_targetingsentencelines(self, object_id, batch=False):
+        """Returns targeting information for the given object."""
+        path = '%s/targetingsentencelines' % object_id
+        return self.make_request(path, 'GET', batch=batch)
+
+    def get_reachestimate(self, object_id, batch=False):
+        """Returns reach estimation for the given object."""
+        path = '%s/reachestimate' % object_id
+        return self.make_request(path, 'GET', batch=batch)
+
     def get_async_job_status(self, job_id, batch=False):
         """Returns the asynchronously requested job status"""
         path = '%s' % job_id
         return self.make_request(path, 'GET', batch=batch)
 
-    # New API
     def get_async_job_result(self, account_id, job_id, batch=False):
         """Returns completed result of the given async job"""
         path = 'act_%s/reportstats' % account_id
@@ -472,6 +526,11 @@ class AdsAPI(object):
             'report_run_id': job_id
         }
         return self.make_request(path, 'GET', args=args, batch=batch)
+
+    def get_async_job_result2(self, job_id, batch=False):
+        """Returns completed result of the given async job"""
+        path = '%s/insights' % job_id
+        return self.make_request(path, 'GET', batch=batch)
 
     def get_conversion_stats_by_adaccount(self, account_id, batch=False):
         """Returns the aggregated conversion stats for the given ad account."""
@@ -829,7 +888,6 @@ class AdsAPI(object):
 
         return self.make_request(path, 'POST', args, batch=batch)
 
-    # New API
     def delete_adcampaign(self, campaign_id, batch=False):
         """Delete the given ad campaign."""
         path = '%s' % campaign_id
