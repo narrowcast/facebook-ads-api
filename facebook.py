@@ -410,6 +410,7 @@ class AdsAPI(object):
         """Returns formatted time range."""
         if not start or not end:
             return None
+        end = end + datetime.timedelta(1)
         if not isinstance(start, datetime.datetime):
             start = datetime.datetime(start)
         if not isinstance(end, datetime.datetime):
