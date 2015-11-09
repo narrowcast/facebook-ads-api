@@ -464,39 +464,49 @@ class AdsAPI(object):
             return self.make_request(path, 'POST', args=args, batch=batch)
         return self.make_request(path, 'GET', args=args, batch=batch)
 
-    def get_insights(self, object_id, fields=None, action_breakdowns=None,
-                     level=None, date_preset=None, date_start=None,
-                     date_end=None, time_increment=None, breakdowns=None,
-                     filtering=None, sort=None, limit=None,
-                     action_attribution_windows=None,
+    def get_insights(self, object_id, default_summary=False, fields=None,
+                     filtering=None, summary=None, sort=None,
+                     action_attribution_windows=None, action_breakdowns=None,
+                     action_report_time=None, breakdowns=None,
+                     date_preset=None, level=None, product_id_limit=None,
+                     summary_action_breakdowns=None, time_increment=None,
+                     time_range=None, time_ranges=None, limit=None,
                      async=False, batch=False):
         """Returns the insights information for the given object."""
-        if date_preset is None and date_start is None and date_end is None:
-            raise AdsAPIError("Either a date_preset or a date_start/end \
-                                must be set when requesting a stats info.")
         path = '%s/insights' % object_id
         args = {}
+        if default_summary:
+            args['default_summary'] = default_summary
         if fields:
             args['fields'] = fields
-        if action_breakdowns:
-            args['action_breakdowns'] = json.dumps(action_breakdowns)
-        if action_attribution_windows:
-            args['action_attribution_windows'] = json.dumps(action_attribution_windows)
-        if level:
-            args['level'] = level
-        if date_preset:
-            args['date_preset'] = date_preset
-        if date_start and date_end:
-            args['time_interval'] = \
-                self.get_time_interval(date_start, date_end)
-        if time_increment:
-            args['time_increment'] = time_increment
-        if breakdowns:
-            args['breakdowns'] = json.dumps(breakdowns)
         if filtering:
             args['filtering'] = json.dumps(filtering)
+        if summary:
+            args['summary'] = json.dumps(summary)
         if sort:
             args['sort'] = sort
+        if action_attribution_windows:
+            args['action_attribution_windows'] = json.dumps(action_attribution_windows)
+        if action_breakdowns:
+            args['action_breakdowns'] = json.dumps(action_breakdowns)
+        if action_report_time:
+            args['action_report_time'] = json.dumps(action_report_time)
+        if breakdowns:
+            args['breakdowns'] = json.dumps(breakdowns)
+        if date_preset:
+            args['date_preset'] = date_preset
+        if level:
+            args['level'] = level
+        if product_id_limit:
+            args['product_id_limit'] = product_id_limit
+        if summary_action_breakdowns:
+            args['summary_action_breakdowns'] = summary_action_breakdowns
+        if time_increment:
+            args['time_increment'] = time_increment
+        if time_range:
+            args['time_range'] = time_range
+        if time_ranges:
+            args['time_ranges'] = time_ranges
         if limit:
             args['limit'] = limit
         if async:
